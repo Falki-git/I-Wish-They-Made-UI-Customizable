@@ -1,0 +1,75 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/CustomizableUI/UI/CustomizableUI.uss"/>
+    <ui:VisualElement name="root" class="root">
+        <ui:VisualElement name="header" class="header">
+            <ui:Button text="&lt;" display-tooltip-when-elided="true" name="prev-group" class="select-button"/>
+            <ui:Label text="GROUP.NAME" display-tooltip-when-elided="true" name="group-label" class="group-label"/>
+            <ui:Button text="&gt;" display-tooltip-when-elided="true" name="next-group" class="select-button"/>
+            <ui:VisualElement name="close-button__container" class="close-button__container">
+                <ui:Button display-tooltip-when-elided="true" name="close-button" class="close-button" text="X"/>
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <ui:VisualElement name="not-ready" class="not-ready" style="display: none;">
+            <ui:Label text="Enter the flight scene to edit the HUD layout." display-tooltip-when-elided="true"/>
+        </ui:VisualElement>
+
+        <ui:VisualElement name="body" class="body">
+            <ui:VisualElement name="toggles-row" class="row toggles-row">
+                <ui:Toggle label="Follow Navball" name="follow-navball-toggle" class="toggle"/>
+                <ui:Toggle label="Show" name="show-toggle" class="toggle"/>
+            </ui:VisualElement>
+
+            <ui:VisualElement name="fields-row" class="row fields-row">
+                <ui:VisualElement class="field-group">
+                    <ui:Label text="X:" class="field-label"/>
+                    <ui:TextField name="x-field" class="position-field"/>
+                </ui:VisualElement>
+                <ui:VisualElement class="field-group">
+                    <ui:Label text="Y:" class="field-label"/>
+                    <ui:TextField name="y-field" class="position-field"/>
+                </ui:VisualElement>
+            </ui:VisualElement>
+
+            <ui:VisualElement name="sliders-row" class="row sliders-row">
+                <ui:Slider name="x-slider" low-value="0" high-value="1920" class="position-slider"/>
+                <ui:Slider name="y-slider" low-value="0" high-value="1080" class="position-slider"/>
+            </ui:VisualElement>
+
+            <ui:VisualElement name="controls-row" class="row controls-row">
+                <ui:VisualElement name="dpad" class="dpad">
+                    <ui:VisualElement class="dpad__top-row">
+                        <ui:Button text="^ ^" display-tooltip-when-elided="true" name="jump-up" class="jump-button jump-button--vertical"/>
+                    </ui:VisualElement>
+                    <ui:VisualElement class="dpad__middle-row">
+                        <ui:Button text="&lt;&lt;" display-tooltip-when-elided="true" name="jump-left" class="jump-button jump-button--horizontal"/>
+                        <ui:VisualElement name="nudge-pad" class="nudge-pad">
+                            <ui:VisualElement name="nudge-up" class="nudge-button-container"/>
+                            <ui:VisualElement class="nudge-pad__middle-row">
+                                <ui:VisualElement name="nudge-left" class="nudge-button-container"/>
+                                <ui:VisualElement name="nudge-right" class="nudge-button-container"/>
+                            </ui:VisualElement>
+                            <ui:VisualElement name="nudge-down" class="nudge-button-container"/>
+                        </ui:VisualElement>
+                        <ui:Button text="&gt;&gt;" display-tooltip-when-elided="true" name="jump-right" class="jump-button jump-button--horizontal"/>
+                    </ui:VisualElement>
+                    <ui:VisualElement class="dpad__bottom-row">
+                        <ui:Button text="v v" display-tooltip-when-elided="true" name="jump-down" class="jump-button jump-button--vertical"/>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+
+                <ui:VisualElement name="reset-buttons" class="reset-buttons">
+                    <ui:Button text="Reset" display-tooltip-when-elided="true" name="reset-button" class="action-button"/>
+                    <ui:Button text="FUBAR" display-tooltip-when-elided="true" name="fubar-button" class="action-button"/>
+                </ui:VisualElement>
+            </ui:VisualElement>
+
+            <ui:VisualElement name="save-load-row" class="row save-load-row">
+                <ui:Button text="Save" display-tooltip-when-elided="true" name="save-button" class="action-button"/>
+                <ui:Button text="Load" display-tooltip-when-elided="true" name="load-button" class="action-button"/>
+            </ui:VisualElement>
+
+            <ui:Label text="" display-tooltip-when-elided="true" name="message-label" class="message-label"/>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>
