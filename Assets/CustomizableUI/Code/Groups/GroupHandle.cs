@@ -130,6 +130,20 @@ namespace CustomizableUI.Groups
         public void NudgeUp() => Position += new Vector3(0f, 1f, 0f);
         public void NudgeDown() => Position += new Vector3(0f, -1f, 0f);
 
+        /// <summary>
+        /// Re-pushes our own IsActive intent onto the GameObject without touching state.
+        /// KSP.UI.Flight.UIFlightHud owns these same instrument GameObjects and periodically
+        /// force-SetActives all of them back on (SetVesselInstrumentDisplay/EnableVesselInstruments,
+        /// on VesselChanged/VesselCreated messages) regardless of what this mod set -- there's no
+        /// reliable message-order hook to beat that, so the mod's Update loop calls this every
+        /// frame to win the fight instead of applying the hide once and hoping it sticks.
+        /// </summary>
+        public void EnforceVisibility()
+        {
+            if (GroupRoot.gameObject.activeSelf != _isActive)
+                GroupRoot.gameObject.SetActive(_isActive);
+        }
+
         public void ResetToDefault()
         {
             Position = DefaultPosition;

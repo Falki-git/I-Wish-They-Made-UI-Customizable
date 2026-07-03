@@ -198,5 +198,12 @@ namespace CustomizableUI.Groups
             foreach (var group in Groups)
                 group.ResetToDefault();
         }
+
+        /// <summary>See GroupHandle.EnforceVisibility -- call every frame while initialized.</summary>
+        public void EnforceVisibility()
+        {
+            foreach (var group in Groups)
+                group.EnforceVisibility();
+        }
     }
 }

@@ -88,8 +88,19 @@ namespace CustomizableUI
         {
             // Initialization via FlightViewEnteredMessage sometimes fires before the flight HUD's
             // instruments have finished spawning, so also poll here as a fallback (mirrors the
-            // legacy mod's approach).
+            // legacy mod's approach). When this fallback is the one that actually succeeds, the
+            // message handler's own LoadData() call never ran, so the saved layout (including
+            // hidden groups) would otherwise never get applied.
+            var wasInitialized = GroupRegistry.Instance.IsInitialized;
             GroupRegistry.Instance.InitializeIfNeeded();
+            if (!wasInitialized && GroupRegistry.Instance.IsInitialized)
+                SaveLoadUtility.LoadData();
+
+            // The game's own UIFlightHud force-reactivates these same instrument GameObjects on
+            // vessel-changed/vessel-created events (see GroupHandle.EnforceVisibility), so keep
+            // reasserting our hidden groups every frame rather than trusting a one-time apply.
+            if (GroupRegistry.Instance.IsInitialized)
+                GroupRegistry.Instance.EnforceVisibility();
 
             if ((Settings.EnableKeybinding?.Value ?? false) &&
                 (Settings.Keybind1.Value == KeyCode.None || Input.GetKey(Settings.Keybind1.Value)) &&
