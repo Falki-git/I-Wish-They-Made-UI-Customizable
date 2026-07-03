@@ -1,0 +1,166 @@
+.root {
+    width: 620px;
+    background-color: rgba(20, 22, 26, 0.95);
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.15);
+    padding: 8px;
+}
+
+.header {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.select-button {
+    width: 32px;
+    height: 32px;
+    -unity-text-align: middle-center;
+    font-size: 18px;
+}
+
+.group-label {
+    flex-grow: 1;
+    -unity-text-align: middle-center;
+    font-size: 20px;
+    -unity-font-style: bold;
+}
+
+.close-button__container {
+    width: 24px;
+}
+
+.close-button {
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    -unity-text-align: middle-center;
+}
+
+.not-ready {
+    padding: 24px;
+    -unity-text-align: middle-center;
+    align-items: center;
+}
+
+.body {
+    flex-direction: column;
+}
+
+.row {
+    flex-direction: row;
+    justify-content: center;
+    margin-bottom: 8px;
+}
+
+.toggles-row .toggle {
+    margin-left: 12px;
+    margin-right: 12px;
+}
+
+.fields-row .field-group {
+    flex-direction: row;
+    align-items: center;
+    margin-left: 8px;
+    margin-right: 8px;
+}
+
+.field-label {
+    margin-right: 4px;
+}
+
+.position-field {
+    width: 70px;
+}
+
+.sliders-row .position-slider {
+    flex-grow: 1;
+    margin-left: 8px;
+    margin-right: 8px;
+}
+
+.controls-row {
+    align-items: center;
+}
+
+.dpad {
+    align-items: center;
+}
+
+.dpad__top-row, .dpad__bottom-row {
+    align-items: center;
+    justify-content: center;
+}
+
+.dpad__middle-row {
+    flex-direction: row;
+    align-items: center;
+}
+
+.jump-button {
+    -unity-text-align: middle-center;
+}
+
+.jump-button--vertical {
+    width: 100px;
+    height: 32px;
+    font-size: 24px;
+}
+
+.jump-button--horizontal {
+    width: 32px;
+    height: 100px;
+    font-size: 24px;
+    margin-left: 4px;
+    margin-right: 4px;
+}
+
+.nudge-pad {
+    align-items: center;
+}
+
+.nudge-pad__middle-row {
+    flex-direction: row;
+}
+
+.nudge-button-container {
+    width: 36px;
+    height: 36px;
+    align-items: center;
+    justify-content: center;
+}
+
+.nudge-button {
+    width: 36px;
+    height: 36px;
+    font-size: 20px;
+    -unity-text-align: middle-center;
+}
+
+.reset-buttons {
+    margin-left: 24px;
+}
+
+.action-button {
+    -unity-text-align: middle-center;
+    margin-bottom: 4px;
+    min-width: 90px;
+}
+
+.save-load-row .action-button {
+    margin-left: 8px;
+    margin-right: 8px;
+}
+
+.message-label {
+    -unity-text-align: middle-center;
+    color: rgb(120, 220, 120);
+    display: none;
+}
+
+.overlay {
+    position: absolute;
+    background-color: rgba(255, 255, 0, 0.05);
+    border-width: 2px;
+    border-color: rgba(255, 255, 0, 0.9);
+}

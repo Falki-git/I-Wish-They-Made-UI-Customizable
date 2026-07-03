@@ -70,12 +70,12 @@ BepInEx-style native loader
                  └─ YourMod   ← extends KerbalMod (default) or GeneralMod
 ```
 
-A mod is a class extending `SpaceWarp2.API.Mods.KerbalMod` with three lifecycle hooks.
+A mod is a class extending `Redux.ExtraModTypes.KerbalMod` with three lifecycle hooks.
 **Default to `KerbalMod`** — it's a MonoBehaviour, so you get the `Update` loop and direct
 game references (like legacy SpaceWarp 1.x mods):
 
 ```csharp
-using SpaceWarp2.API.Mods;
+using Redux.ExtraModTypes;
 
 public class MyMod : KerbalMod {
     public override void OnPreInitialized()  { /* before assets/addressables load — register loaders */ }
@@ -83,8 +83,9 @@ public class MyMod : KerbalMod {
     public override void OnPostInitialized() { /* all mods initialized */ }
 }
 ```
-- Extend `GeneralMod` instead for a plain (non-MonoBehaviour) lifecycle object when you don't
-  need the `Update` loop.
+- Extend `SpaceWarp2.API.Mods.GeneralMod` instead for a plain (non-MonoBehaviour) lifecycle
+  object when you don't need the `Update` loop (this is what the ThunderKit scaffold defaults
+  to for a new mod).
 - Both provide `SWConfiguration` (IConfigFile), `SWMetadata` (guid/version), and
   `CreateHarmonyAndPatchAll()` for Harmony patching. For logging, use ReduxLib's per-class
   logger (see Conventions), not the `SWLogger`.

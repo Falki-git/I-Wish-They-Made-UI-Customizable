@@ -1,6 +1,10 @@
 {
   "name": "CustomizableUI",
   "rootNamespace": "CustomizableUI",
+  "references": [
+    "Unity.Addressables",
+    "Unity.ResourceManager"
+  ],
   "allowUnsafeCode": true,
   "overrideReferences": true,
   "precompiledReferences": [

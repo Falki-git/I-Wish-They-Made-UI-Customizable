@@ -153,16 +153,17 @@ Long/async game operations use `KSP.Game.Flow.FlowAction` — a command object w
 ## 6. Mod entry point & lifecycle (SpaceWarp2)
 
 ```csharp
-using SpaceWarp2.API.Mods;
+using Redux.ExtraModTypes;          // KerbalMod lives here, not SpaceWarp2.API.Mods
 public class MyModPlugin : KerbalMod {                 // default; GeneralMod for a plain lifecycle object
     public override void OnPreInitialized()  { /* register asset/loader actions */ }
     public override void OnInitialized()     { /* assets loaded; Harmony patch; hook MessageCenter */ }
     public override void OnPostInitialized() { /* other mods are up */ }
 }
 ```
-- **Default to `KerbalMod`** — it's a MonoBehaviour, so you get the `Update` loop and direct
-  game references (like legacy SpaceWarp 1.x mods). Extend `GeneralMod` only when you want a
-  plain (non-MonoBehaviour) lifecycle object.
+- **Default to `KerbalMod`** (`Redux.ExtraModTypes.KerbalMod`, decompiled from `Assembly-CSharp.dll`)
+  — it's a MonoBehaviour, so you get the `Update` loop and direct game references (like legacy
+  SpaceWarp 1.x mods). Extend `SpaceWarp2.API.Mods.GeneralMod` only when you want a plain
+  (non-MonoBehaviour) lifecycle object — that's the ThunderKit scaffold's default for a new mod.
 - Provided members: `SWConfiguration`, `SWMetadata`, `CreateHarmonyAndPatchAll()`. For logging,
   use a ReduxLib per-class logger — `ReduxLib.ReduxLib.GetLogger($"<modname>|{GetType().Name}")`
   — not `SWLogger`.
