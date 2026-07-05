@@ -53,7 +53,7 @@ namespace CustomizableUI.UI
 
         private Label _messageLabel;
         private float _messageShownAt = float.NegativeInfinity;
-        private const float MessageDurationSeconds = 2f;
+        private const float MessageDurationSeconds = 3f;
         private bool _messageBeingShown;
 
         private VisualElement _overlay;
