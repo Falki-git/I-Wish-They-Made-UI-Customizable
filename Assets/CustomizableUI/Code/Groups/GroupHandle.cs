@@ -33,6 +33,9 @@ namespace CustomizableUI.Groups
 
         public readonly Vector3 DefaultPosition;
 
+        /// <summary>See GroupCatalog.GetDefaultAttachToNavball -- a handful of groups default to following the navball.</summary>
+        public readonly bool DefaultAttachToNavball;
+
         /// <summary>Manual, per-group correction applied only to the overlay's drawn position -- see OverlayCorrections.</summary>
         private readonly Vector2 _overlayCorrection;
 
@@ -74,6 +77,8 @@ namespace CustomizableUI.Groups
             _overlayCorrection = OverlayCorrections.Get(key);
 
             DefaultPosition = Positionable.position;
+            DefaultAttachToNavball = GroupCatalog.GetDefaultAttachToNavball(key);
+            AttachToNavball = DefaultAttachToNavball;
             _isActive = true;
             IsActive = true;
         }
@@ -130,11 +135,25 @@ namespace CustomizableUI.Groups
         public void NudgeUp() => Position += new Vector3(0f, 1f, 0f);
         public void NudgeDown() => Position += new Vector3(0f, -1f, 0f);
 
+        /// <summary>
+        /// Re-pushes our own IsActive intent onto the GameObject without touching state.
+        /// KSP.UI.Flight.UIFlightHud owns these same instrument GameObjects and periodically
+        /// force-SetActives all of them back on (SetVesselInstrumentDisplay/EnableVesselInstruments,
+        /// on VesselChanged/VesselCreated messages) regardless of what this mod set -- there's no
+        /// reliable message-order hook to beat that, so the mod's Update loop calls this every
+        /// frame to win the fight instead of applying the hide once and hoping it sticks.
+        /// </summary>
+        public void EnforceVisibility()
+        {
+            if (GroupRoot.gameObject.activeSelf != _isActive)
+                GroupRoot.gameObject.SetActive(_isActive);
+        }
+
         public void ResetToDefault()
         {
             Position = DefaultPosition;
             IsActive = true;
-            AttachToNavball = false;
+            AttachToNavball = DefaultAttachToNavball;
         }
 
         public GroupLayout ToLayout()

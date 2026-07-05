@@ -36,6 +36,23 @@ namespace CustomizableUI.Groups
         /// <summary>Keys the registry should look for first, in this order, so the editor's group list feels familiar.</summary>
         public static IReadOnlyCollection<string> KnownKeys => DisplayNames.Keys;
 
+        /// <summary>
+        /// Groups visually/functionally tied to the navball closely enough that moving the
+        /// navball and leaving them behind would look broken -- these default to following it,
+        /// and players have to opt out via the "follow navball" toggle instead of opting in.
+        /// </summary>
+        private static readonly HashSet<string> DefaultAttachToNavballKeys = new()
+        {
+            "widget_indicator_verticalspeed_horizontal_new(Clone)", // VERTICAL.SPEED
+            "group_atmospheric_indicator(Clone)",                   // ATMOSPHERIC.INDICATOR
+            "group_throttle(Clone)",                                // THROTTLE
+        };
+
+        public static bool GetDefaultAttachToNavball(string key) => DefaultAttachToNavballKeys.Contains(key);
+
+        /// <summary>Exposed so GroupRegistry can warn if one of these expected keys isn't discovered at runtime.</summary>
+        public static IReadOnlyCollection<string> DefaultAttachToNavballKeySet => DefaultAttachToNavballKeys;
+
         public static string GetDisplayName(string key) =>
             DisplayNames.TryGetValue(key, out var name) ? name : PrettifyUnknownKey(key);
 

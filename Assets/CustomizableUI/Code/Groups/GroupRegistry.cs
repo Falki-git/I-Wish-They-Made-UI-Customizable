@@ -123,6 +123,14 @@ namespace CustomizableUI.Groups
             _selectedIndex = 0;
             IsInitialized = true;
 
+            foreach (var key in GroupCatalog.DefaultAttachToNavballKeySet)
+            {
+                if (Groups.All(g => g.Key != key))
+                    Logger.LogWarning(
+                        $"Expected group \"{key}\" (default-attaches to the navball) was not discovered -- " +
+                        "if Redux renamed it, GroupCatalog.DefaultAttachToNavballKeys needs updating.");
+            }
+
             Logger.LogInfo(
                 $"Initialization successful. Top level UI groups created: {Groups.Count}. " +
                 $"Canvas: renderMode={mainCanvas.renderMode} scaleFactor={mainCanvas.scaleFactor} " +
@@ -197,6 +205,13 @@ namespace CustomizableUI.Groups
         {
             foreach (var group in Groups)
                 group.ResetToDefault();
+        }
+
+        /// <summary>See GroupHandle.EnforceVisibility -- call every frame while initialized.</summary>
+        public void EnforceVisibility()
+        {
+            foreach (var group in Groups)
+                group.EnforceVisibility();
         }
     }
 }
