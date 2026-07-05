@@ -38,6 +38,14 @@ namespace CustomizableUI.UI
         private Button _jumpLeftButton;
         private Button _jumpRightButton;
 
+        private RepeatButton _nudgeUpButton;
+        private RepeatButton _nudgeDownButton;
+        private RepeatButton _nudgeLeftButton;
+        private RepeatButton _nudgeRightButton;
+
+        private const long NudgeRepeatDelayMs = 300;
+        private const long NudgeRepeatIntervalMs = 60;
+
         private Button _resetButton;
         private Button _fubarButton;
         private Button _saveButton;
@@ -46,6 +54,7 @@ namespace CustomizableUI.UI
         private Label _messageLabel;
         private float _messageShownAt = float.NegativeInfinity;
         private const float MessageDurationSeconds = 2f;
+        private bool _messageBeingShown;
 
         private VisualElement _overlay;
 
@@ -80,6 +89,11 @@ namespace CustomizableUI.UI
             _jumpLeftButton = _root.Q<Button>("jump-left");
             _jumpRightButton = _root.Q<Button>("jump-right");
 
+            _nudgeUpButton = _root.Q<RepeatButton>("nudge-up");
+            _nudgeDownButton = _root.Q<RepeatButton>("nudge-down");
+            _nudgeLeftButton = _root.Q<RepeatButton>("nudge-left");
+            _nudgeRightButton = _root.Q<RepeatButton>("nudge-right");
+
             _resetButton = _root.Q<Button>("reset-button");
             _fubarButton = _root.Q<Button>("fubar-button");
             _saveButton = _root.Q<Button>("save-button");
@@ -87,27 +101,10 @@ namespace CustomizableUI.UI
 
             _messageLabel = _root.Q<Label>("message-label");
 
-            BuildNudgeButtons();
             BuildOverlay();
             RegisterCallbacks();
 
             RefreshForSelection();
-        }
-
-        private void BuildNudgeButtons()
-        {
-            AddRepeatButton("nudge-up", "▲", () => MutateSelected(g => g.NudgeUp()));
-            AddRepeatButton("nudge-down", "▼", () => MutateSelected(g => g.NudgeDown()));
-            AddRepeatButton("nudge-left", "◀", () => MutateSelected(g => g.NudgeLeft()));
-            AddRepeatButton("nudge-right", "▶", () => MutateSelected(g => g.NudgeRight()));
-        }
-
-        private void AddRepeatButton(string containerName, string text, Action action)
-        {
-            var container = _root.Q<VisualElement>(containerName);
-            var button = new RepeatButton(action, 300, 60) { text = text };
-            button.AddToClassList("nudge-button");
-            container.Add(button);
         }
 
         private void BuildOverlay()
@@ -146,6 +143,11 @@ namespace CustomizableUI.UI
             _jumpDownButton.clicked += () => MutateSelected(JumpDown);
             _jumpLeftButton.clicked += () => MutateSelected(JumpLeft);
             _jumpRightButton.clicked += () => MutateSelected(JumpRight);
+
+            _nudgeUpButton.SetAction(() => MutateSelected(g => g.NudgeUp()), NudgeRepeatDelayMs, NudgeRepeatIntervalMs);
+            _nudgeDownButton.SetAction(() => MutateSelected(g => g.NudgeDown()), NudgeRepeatDelayMs, NudgeRepeatIntervalMs);
+            _nudgeLeftButton.SetAction(() => MutateSelected(g => g.NudgeLeft()), NudgeRepeatDelayMs, NudgeRepeatIntervalMs);
+            _nudgeRightButton.SetAction(() => MutateSelected(g => g.NudgeRight()), NudgeRepeatDelayMs, NudgeRepeatIntervalMs);
 
             _resetButton.clicked += () =>
             {
@@ -344,7 +346,23 @@ namespace CustomizableUI.UI
             }
 
             var showMessage = Time.time - _messageShownAt < MessageDurationSeconds;
-            _messageLabel.style.display = showMessage ? DisplayStyle.Flex : DisplayStyle.None;
+            
+            // show or hide the notification panel
+            if (showMessage != _messageBeingShown)
+            {
+                _messageBeingShown = showMessage;
+
+                if (_messageBeingShown)
+                {
+                    _messageLabel.AddToClassList("notification--show");
+                }
+                else
+                {
+                    _messageLabel.RemoveFromClassList("notification--show");
+                }
+            }
+            
+            // _messageLabel.style.display = showMessage ? DisplayStyle.Flex : DisplayStyle.None;
         }
 
         private void UpdateOverlay(GroupHandle selected)

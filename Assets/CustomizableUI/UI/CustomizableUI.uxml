@@ -1,75 +1,88 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
-    <Style src="project://database/Assets/CustomizableUI/UI/CustomizableUI.uss"/>
-    <ui:VisualElement name="root" class="root">
+    <Style src="project://database/Assets/CustomizableUI/UI/CustomizableUI.uss?fileID=7433441132597879392&amp;guid=cb912fd60eae1904fa0e7e1512e9b4fa&amp;type=3#CustomizableUI"/>
+    <ui:VisualElement name="root" class="root" style="height: 486px;">
         <ui:VisualElement name="header" class="header">
-            <ui:Button text="&lt;" display-tooltip-when-elided="true" name="prev-group" class="select-button"/>
-            <ui:Label text="GROUP.NAME" display-tooltip-when-elided="true" name="group-label" class="group-label"/>
-            <ui:Button text="&gt;" display-tooltip-when-elided="true" name="next-group" class="select-button"/>
+            <ui:VisualElement name="title__container" class="title__container">
+                <ui:VisualElement name="icon" class="icon"/>
+                <ui:Label tabindex="-1" text="CUSTOMIZABLE UI&#10;" display-tooltip-when-elided="true" name="title-text" class="title-text"/>
+            </ui:VisualElement>
             <ui:VisualElement name="close-button__container" class="close-button__container">
-                <ui:Button display-tooltip-when-elided="true" name="close-button" class="close-button" text="X"/>
+                <ui:Button name="close-button" class="close-button" style="background-color: rgba(0, 0, 0, 0.02);">
+                    <ui:VisualElement name="close-button__background" class="close-button__background"/>
+                </ui:Button>
             </ui:VisualElement>
         </ui:VisualElement>
-
         <ui:VisualElement name="not-ready" class="not-ready" style="display: none;">
             <ui:Label text="Enter the flight scene to edit the HUD layout." display-tooltip-when-elided="true"/>
         </ui:VisualElement>
-
-        <ui:VisualElement name="body" class="body">
-            <ui:VisualElement name="toggles-row" class="row toggles-row">
-                <ui:Toggle label="Follow Navball" name="follow-navball-toggle" class="toggle"/>
-                <ui:Toggle label="Show" name="show-toggle" class="toggle"/>
-            </ui:VisualElement>
-
-            <ui:VisualElement name="fields-row" class="row fields-row">
-                <ui:VisualElement class="field-group">
-                    <ui:Label text="X:" class="field-label"/>
-                    <ui:TextField name="x-field" class="position-field"/>
+        <ui:VisualElement name="body" class="body" style="align-items: center;">
+            <ui:VisualElement name="select-group__container" style="flex-direction: row; justify-content: center; width: 80%; height: 40px; align-items: center;">
+                <ui:Button text="&lt;" display-tooltip-when-elided="true" name="prev-group" class="group-selector" style="padding-left: 2px; padding-bottom: 0; padding-right: 0; padding-top: 7px;"/>
+                <ui:VisualElement name="title-group" class="title-group">
+                    <ui:Label text="GROUP.NAME" display-tooltip-when-elided="true" name="group-label" class="group-label"/>
                 </ui:VisualElement>
-                <ui:VisualElement class="field-group">
-                    <ui:Label text="Y:" class="field-label"/>
-                    <ui:TextField name="y-field" class="position-field"/>
-                </ui:VisualElement>
+                <ui:Button text="&gt;" display-tooltip-when-elided="true" name="next-group" focusable="true" class="nav-button group-selector" style="-unity-text-align: middle-center; padding-top: 7px; padding-bottom: 0; padding-left: 8px; padding-right: 0;"/>
             </ui:VisualElement>
-
-            <ui:VisualElement name="sliders-row" class="row sliders-row">
-                <ui:Slider name="x-slider" low-value="0" high-value="1920" class="position-slider"/>
-                <ui:Slider name="y-slider" low-value="0" high-value="1080" class="position-slider"/>
+            <ui:VisualElement name="toggles-row" class="row toggles-row" style="flex-direction: row; justify-content: space-evenly; margin-top: 10px;">
+                <ui:Toggle label="Show UI Group" name="show-toggle" class="led-toggle"/>
+                <ui:VisualElement style="flex-grow: 1; width: 20px;"/>
+                <ui:Toggle label="Follow Navball" name="follow-navball-toggle" class="led-toggle"/>
             </ui:VisualElement>
-
-            <ui:VisualElement name="controls-row" class="row controls-row">
-                <ui:VisualElement name="dpad" class="dpad">
-                    <ui:VisualElement class="dpad__top-row">
-                        <ui:Button text="^ ^" display-tooltip-when-elided="true" name="jump-up" class="jump-button jump-button--vertical"/>
+            <ui:VisualElement name="position-row" class="position-row" style="flex-direction: row;">
+                <ui:VisualElement name="position-left-column" style="flex-grow: 1; width: 50%;">
+                    <ui:VisualElement name="x-container" style="flex-direction: row; align-items: center; justify-content: flex-end; padding-right: 10px;">
+                        <ui:Label text="X:" name="x-label" class="field-label"/>
+                        <ui:TextField name="x-field" class="position-field"/>
                     </ui:VisualElement>
-                    <ui:VisualElement class="dpad__middle-row">
-                        <ui:Button text="&lt;&lt;" display-tooltip-when-elided="true" name="jump-left" class="jump-button jump-button--horizontal"/>
-                        <ui:VisualElement name="nudge-pad" class="nudge-pad">
-                            <ui:VisualElement name="nudge-up" class="nudge-button-container"/>
-                            <ui:VisualElement class="nudge-pad__middle-row">
-                                <ui:VisualElement name="nudge-left" class="nudge-button-container"/>
-                                <ui:VisualElement name="nudge-right" class="nudge-button-container"/>
-                            </ui:VisualElement>
-                            <ui:VisualElement name="nudge-down" class="nudge-button-container"/>
-                        </ui:VisualElement>
-                        <ui:Button text="&gt;&gt;" display-tooltip-when-elided="true" name="jump-right" class="jump-button jump-button--horizontal"/>
-                    </ui:VisualElement>
-                    <ui:VisualElement class="dpad__bottom-row">
-                        <ui:Button text="v v" display-tooltip-when-elided="true" name="jump-down" class="jump-button jump-button--vertical"/>
+                    <ui:VisualElement name="x-slider-container" style="width: 90%; align-items: center; justify-content: center; margin-top: 20px; align-self: center;">
+                        <ui:Label text="Horizontal" name="horizontal-label"/>
+                        <ui:Slider name="x-slider" low-value="0" high-value="1920" class="position-slider" style="min-height: 24px; min-width: 100%;"/>
                     </ui:VisualElement>
                 </ui:VisualElement>
-
-                <ui:VisualElement name="reset-buttons" class="reset-buttons">
+                <ui:VisualElement name="position-right-column" style="flex-grow: 1; width: 50%;">
+                    <ui:VisualElement name="y-container" style="flex-direction: row; align-items: center; justify-content: flex-start; padding-left: 10px;">
+                        <ui:Label text="Y:" name="y-label" class="field-label"/>
+                        <ui:TextField name="y-field" class="position-field"/>
+                    </ui:VisualElement>
+                    <ui:VisualElement name="y-slider-container" style="width: 90%; align-items: center; justify-content: center; margin-top: 20px; align-self: center;">
+                        <ui:Label text="Vertical" name="vertical-label"/>
+                        <ui:Slider name="y-slider" low-value="0" high-value="1920" class="position-slider" style="min-width: 100%;"/>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement name="position-adjustments" style="flex-direction: row; width: 100%; margin-top: 10px;">
+                <ui:VisualElement name="fine-adjustments-column" style="width: 80%; flex-direction: row; justify-content: center;">
+                    <ui:VisualElement name="fine-buttons-container-1" class="fine-buttons-container" style="flex-grow: 1;">
+                        <ui:Button text="" display-tooltip-when-elided="true" name="jump-left" class="position-button" style="background-image: url(&quot;project://database/Assets/CustomizableUI/Copied/assets/images/double-left.png?fileID=2800000&amp;guid=cbe1ddb15c1b3074a97d777212854ec9&amp;type=3#double-left&quot;);"/>
+                    </ui:VisualElement>
+                    <ui:VisualElement name="fine-buttons-container-2" class="fine-buttons-container" style="flex-grow: 1;">
+                        <ui:RepeatButton text="" display-tooltip-when-elided="true" name="nudge-left" class="unity-button position-button" style="background-image: url(&quot;project://database/Assets/CustomizableUI/Copied/assets/images/left.png?fileID=2800000&amp;guid=b4637e6290b446346858c15013f20b2c&amp;type=3#left&quot;);"/>
+                    </ui:VisualElement>
+                    <ui:VisualElement name="fine-buttons-container-3" class="fine-buttons-container" style="flex-grow: 1;">
+                        <ui:Button text="" display-tooltip-when-elided="true" name="jump-up" class="position-button" style="background-image: url(&quot;project://database/Assets/CustomizableUI/Copied/assets/images/double-up.png?fileID=2800000&amp;guid=63fadc0772a9d334ea862ae7141529db&amp;type=3#double-up&quot;);"/>
+                        <ui:RepeatButton text="" display-tooltip-when-elided="true" name="nudge-up" class="position-button unity-button" style="background-image: url(&quot;project://database/Assets/CustomizableUI/Copied/assets/images/up.png?fileID=2800000&amp;guid=1b936644a4677a549974003051f8d777&amp;type=3#up&quot;);"/>
+                        <ui:RepeatButton text="" display-tooltip-when-elided="true" name="nudge-down" class="position-button unity-button" style="background-image: url(&quot;project://database/Assets/CustomizableUI/Copied/assets/images/down.png?fileID=2800000&amp;guid=676e5b25bbab41e4297a7a8a2e6d1aa5&amp;type=3#down&quot;);"/>
+                        <ui:Button text="" display-tooltip-when-elided="true" name="jump-down" class="position-button" style="background-image: url(&quot;project://database/Assets/CustomizableUI/Copied/assets/images/double-down.png?fileID=2800000&amp;guid=a6353fbb42095914994222843d7eb8d6&amp;type=3#double-down&quot;);"/>
+                    </ui:VisualElement>
+                    <ui:VisualElement name="fine-buttons-container-4" class="fine-buttons-container" style="flex-grow: 1;">
+                        <ui:RepeatButton text="" display-tooltip-when-elided="true" name="nudge-right" class="position-button unity-button" style="background-image: url(&quot;project://database/Assets/CustomizableUI/Copied/assets/images/right.png?fileID=2800000&amp;guid=44c3a66b1d58e964a89b360a378c13c9&amp;type=3#right&quot;);"/>
+                    </ui:VisualElement>
+                    <ui:VisualElement name="fine-buttons-container-5" class="fine-buttons-container" style="flex-grow: 1;">
+                        <ui:Button text="" display-tooltip-when-elided="true" name="jump-right" class="position-button" style="background-image: url(&quot;project://database/Assets/CustomizableUI/Copied/assets/images/double-right.png?fileID=2800000&amp;guid=03b0a59042638c44bbd22c72a01b712a&amp;type=3#double-right&quot;);"/>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="reset-buttons-column" class="reset-buttons" style="width: 20%; justify-content: space-evenly;">
                     <ui:Button text="Reset" display-tooltip-when-elided="true" name="reset-button" class="action-button"/>
-                    <ui:Button text="FUBAR" display-tooltip-when-elided="true" name="fubar-button" class="action-button"/>
+                    <ui:Button text="FUBAR" display-tooltip-when-elided="true" name="fubar-button" class="action-button action-button--danger"/>
                 </ui:VisualElement>
             </ui:VisualElement>
-
-            <ui:VisualElement name="save-load-row" class="row save-load-row">
-                <ui:Button text="Save" display-tooltip-when-elided="true" name="save-button" class="action-button"/>
-                <ui:Button text="Load" display-tooltip-when-elided="true" name="load-button" class="action-button"/>
+        </ui:VisualElement>
+        <ui:VisualElement name="footer" class="footer">
+            <ui:VisualElement name="save-load-row" style="flex-direction: row; justify-content: space-around; width: 100%; padding-top: 5px;">
+                <ui:Button text="Save Layout&#10;" display-tooltip-when-elided="true" name="save-button" class="save-layout"/>
+                <ui:Button text="Load Layout" display-tooltip-when-elided="true" name="load-button" class="load-layout"/>
             </ui:VisualElement>
-
-            <ui:Label text="" display-tooltip-when-elided="true" name="message-label" class="message-label"/>
+            <ui:Label display-tooltip-when-elided="true" name="message-label" text="Layout reset to initial state." class="notification" style="background-color: rgba(64, 245, 0, 0.4); top: 55px;"/>
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>
