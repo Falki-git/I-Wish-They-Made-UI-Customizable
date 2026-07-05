@@ -155,7 +155,7 @@ namespace CustomizableUI.UI
                 if (selected == null)
                     return;
 
-                selected.ResetToDefault();
+                MutateSelected(g => g.ResetToDefault());
                 ShowMessage($"Group {selected.DisplayName} reset.");
                 RefreshForSelection();
             };

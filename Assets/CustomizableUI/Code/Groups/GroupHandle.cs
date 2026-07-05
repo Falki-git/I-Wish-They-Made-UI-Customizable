@@ -33,6 +33,9 @@ namespace CustomizableUI.Groups
 
         public readonly Vector3 DefaultPosition;
 
+        /// <summary>See GroupCatalog.GetDefaultAttachToNavball -- a handful of groups default to following the navball.</summary>
+        public readonly bool DefaultAttachToNavball;
+
         /// <summary>Manual, per-group correction applied only to the overlay's drawn position -- see OverlayCorrections.</summary>
         private readonly Vector2 _overlayCorrection;
 
@@ -74,6 +77,8 @@ namespace CustomizableUI.Groups
             _overlayCorrection = OverlayCorrections.Get(key);
 
             DefaultPosition = Positionable.position;
+            DefaultAttachToNavball = GroupCatalog.GetDefaultAttachToNavball(key);
+            AttachToNavball = DefaultAttachToNavball;
             _isActive = true;
             IsActive = true;
         }
@@ -148,7 +153,7 @@ namespace CustomizableUI.Groups
         {
             Position = DefaultPosition;
             IsActive = true;
-            AttachToNavball = false;
+            AttachToNavball = DefaultAttachToNavball;
         }
 
         public GroupLayout ToLayout()
