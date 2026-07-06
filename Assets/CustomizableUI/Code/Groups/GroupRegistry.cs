@@ -201,6 +201,56 @@ namespace CustomizableUI.Groups
             }
         }
 
+        /// <summary>
+        /// Mirrors RecalculatePositionsOfGroupsAttachedToNavball, but for size instead of
+        /// position. Scaling a RectTransform resizes it around its own pivot, not around the
+        /// navball -- so a ScaleWithNavball group left at its own Position after a scale change
+        /// would visually drift toward/away from the navball instead of shrinking/growing in
+        /// place next to it. Rescaling its offset from the navball's center by the same ratio its
+        /// own size changed by keeps it visually anchored.
+        ///
+        /// Two cases: scaling the navball itself scales every other ScaleWithNavball group (and
+        /// its distance from the navball) by the navball's own ratio; scaling a single
+        /// ScaleWithNavball group directly (leaving the navball untouched) only rescales that
+        /// group's own distance from the navball, using its own actual (post-clamp) scale ratio.
+        /// </summary>
+        public void RecalculateForScaleChange(GroupHandle changedGroup, float previousScale)
+        {
+            if (Mathf.Approximately(changedGroup.Scale, previousScale))
+                return;
+
+            var navball = Groups.Find(g => g.Key == GroupCatalog.NavballKey);
+            if (navball == null)
+                return;
+
+            if (changedGroup == navball)
+            {
+                var navballRatio = changedGroup.Scale / previousScale;
+                foreach (var group in Groups)
+                {
+                    if (group == navball || !group.ScaleWithNavball)
+                        continue;
+
+                    var groupPreviousScale = group.Scale;
+                    group.Scale *= navballRatio;
+                    RescaleOffsetFromNavball(group, navball, group.Scale / groupPreviousScale);
+                }
+                return;
+            }
+
+            if (changedGroup.ScaleWithNavball)
+            {
+                var ratio = changedGroup.Scale / previousScale;
+                RescaleOffsetFromNavball(changedGroup, navball, ratio);
+            }
+        }
+
+        private static void RescaleOffsetFromNavball(GroupHandle group, GroupHandle navball, float ratio)
+        {
+            var offsetFromNavball = group.Position - navball.Position;
+            group.Position = navball.Position + offsetFromNavball * ratio;
+        }
+
         public void ResetAllToDefault()
         {
             foreach (var group in Groups)

@@ -3,6 +3,8 @@
     --background-gray-1-translucent: rgba(33, 39, 46, 0.5);
     --black-1: rgb(17, 20, 26);
     --black-1-translucent: rgba(17, 20, 26, 0.5);
+    --yellowish: rgb(237, 208, 147);
+    --yellowish-translucent: rgba(237, 208, 147, 0.1);
     --background-gray-2: rgb(28, 34, 42);
     --background-gray-2-translucent: rgba(28, 34, 42, 0.5);
     --background-gray-3: rgb(46, 53, 64);
@@ -389,6 +391,44 @@
     background-position-x: left 65px;
     -unity-background-image-tint-color: rgb(242, 242, 242);
     padding-left: 40px;
+}
+
+#save-button.pending-changes {
+    border-top-color: var(--yellowish);
+    border-right-color: var(--yellowish);
+    border-bottom-color: var(--yellowish);
+    border-left-color: var(--yellowish);
+    border-top-width: 1px;
+    border-right-width: 1px;
+    border-bottom-width: 1px;
+    border-left-width: 1px;
+    color: var(--yellowish);
+    -unity-background-image-tint-color: var(--yellowish);
+    -unity-font-style: italic;
+}
+
+#save-button.pending-changes:hover {
+    border-left-color: var(--background-lightgray-4-translucent);
+    border-right-color: var(--background-lightgray-4-translucent);
+    border-top-color: var(--background-lightgray-4-translucent);
+    border-bottom-color: var(--background-lightgray-4-translucent);
+    background-color: var(--black-1-translucent);
+    border-top-width: 1px;
+    border-right-width: 1px;
+    border-bottom-width: 1px;
+    border-left-width: 1px;
+}
+
+#save-button.pending-changes:active {
+    border-left-color: var(--border-active-green);
+    border-right-color: var(--border-active-green);
+    border-top-color: var(--border-active-green);
+    border-bottom-color: var(--border-active-green);
+    background-color: var(--black-1-translucent);
+    border-top-width: 1px;
+    border-right-width: 1px;
+    border-bottom-width: 1px;
+    border-left-width: 1px;
 }
 
 .load-layout {
