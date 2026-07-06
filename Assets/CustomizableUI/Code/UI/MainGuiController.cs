@@ -442,8 +442,6 @@ namespace CustomizableUI.UI
                     _messageLabel.RemoveFromClassList("notification--show");
                 }
             }
-            
-            // _messageLabel.style.display = showMessage ? DisplayStyle.Flex : DisplayStyle.None;
         }
 
         private void UpdateOverlay(GroupHandle selected)

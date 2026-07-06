@@ -88,6 +88,9 @@ namespace CustomizableUI.Groups
                 if (child.ResolvePositionable().GetComponent<RectTransform>() == null)
                     continue;
 
+                if (discovered.ContainsKey(child.name))
+                    Logger.LogWarning($"Multiple flight-HUD children named \"{child.name}\" -- only the last one will be editable.");
+
                 discovered[child.name] = child;
             }
 
@@ -165,20 +168,21 @@ namespace CustomizableUI.Groups
         }
 
         /// <summary>
-        /// Temporary troubleshooting aid -- dumps the RectTransform data behind each discovered
-        /// group so mismatches between the legacy pixel-space assumptions and Redux's actual HUD
-        /// layout (anchors/pivot/rect size) can be diagnosed from a log instead of guesswork.
+        /// Troubleshooting aid -- dumps the RectTransform data behind each discovered group so
+        /// mismatches between assumed pixel-space layout and Redux's actual HUD layout
+        /// (anchors/pivot/rect size) can be diagnosed from a log instead of guesswork. Logged at
+        /// Debug level since it's filtered out by default -- raise ReduxLib's log level to see it.
         /// </summary>
         private static void LogGroupDiagnostics(GroupHandle group)
         {
             var rt = group.RectTransform;
             if (rt == null)
             {
-                Logger.LogInfo($"[Diag] {group.Key} -> Positionable=\"{group.Positionable.name}\" has NO RectTransform.");
+                Logger.LogDebug($"[Diag] {group.Key} -> Positionable=\"{group.Positionable.name}\" has NO RectTransform.");
                 return;
             }
 
-            Logger.LogInfo(
+            Logger.LogDebug(
                 $"[Diag] {group.Key} -> Positionable=\"{rt.name}\" " +
                 $"anchorMin={rt.anchorMin} anchorMax={rt.anchorMax} pivot={rt.pivot} " +
                 $"anchoredPosition={rt.anchoredPosition} sizeDelta={rt.sizeDelta} rect={rt.rect} " +

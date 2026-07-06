@@ -1,7 +1,6 @@
 using System;
 using UnityEngine;
 using CustomizableUI.Utilities;
-using ILogger = ReduxLib.Logging.ILogger;
 
 namespace CustomizableUI.Groups
 {
@@ -17,8 +16,6 @@ namespace CustomizableUI.Groups
     /// </summary>
     public class GroupHandle
     {
-        private static readonly ILogger Logger = ReduxLib.ReduxLib.GetLogger($"CustomizableUI|{nameof(GroupHandle)}");
-
         /// <summary>Runtime GameObject name -- the stable identity used for save/load and the catalog lookup.</summary>
         public readonly string Key;
         public readonly string DisplayName;
@@ -71,17 +68,7 @@ namespace CustomizableUI.Groups
         public Vector3 Position
         {
             get => Positionable.position;
-            set
-            {
-                var old = Positionable.position;
-                Positionable.position = value;
-
-                // Temporary instrumentation: three rounds of guessing at what's writing an
-                // unexpected position on group selection have all been wrong, so log the actual
-                // call stack for every real position change instead of guessing again.
-                if (old != value)
-                    Logger.LogInfo($"[PosWrite] {Key}: {old} -> {value}\n{new System.Diagnostics.StackTrace(1, false)}");
-            }
+            set => Positionable.position = value;
         }
 
         private bool _isActive;

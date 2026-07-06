@@ -9,6 +9,7 @@ using UnityEngine;
 using CustomizableUI.Groups;
 using CustomizableUI.UI;
 using CustomizableUI.Utilities;
+using ILogger = ReduxLib.Logging.ILogger;
 
 namespace CustomizableUI
 {
@@ -18,6 +19,8 @@ namespace CustomizableUI
         [PublicAPI] public const string ModName = "Customizable UI";
 
         [PublicAPI] public static CustomizableUIPlugin Instance { get; private set; }
+
+        private static readonly ILogger Logger = ReduxLib.ReduxLib.GetLogger($"CustomizableUI|{nameof(CustomizableUIPlugin)}");
 
         public const string ToolbarFlightButtonID = "BTN-CustomizableUI";
 
@@ -63,11 +66,11 @@ namespace CustomizableUI
             {
                 Game.Messages.PersistentSubscribe<FlightViewEnteredMessage>(OnFlightViewEntered);
                 Game.Messages.PersistentSubscribe<FlightViewLeftMessage>(OnFlightViewLeft);
-                SWLogger.LogInfo("Successfully subscribed to flight view messages.");
+                Logger.LogInfo("Successfully subscribed to flight view messages.");
             }
             catch (Exception ex)
             {
-                SWLogger.LogError($"Error subscribing to flight view messages.\n{ex}");
+                Logger.LogError($"Error subscribing to flight view messages.\n{ex}");
             }
         }
 
@@ -84,7 +87,29 @@ namespace CustomizableUI
             GroupRegistry.Instance.Reset();
         }
 
+        private bool _lastUpdateErrored;
+
         private void Update()
+        {
+            try
+            {
+                RunUpdate();
+                _lastUpdateErrored = false;
+            }
+            catch (Exception ex)
+            {
+                // The flight HUD's live GameObject hierarchy is inherently unpredictable across
+                // Redux versions/scene transitions (see mod_specifics.md), so a single frame's
+                // lookup/positioning logic can throw. Catch here so that failure degrades to a
+                // logged error instead of an uncaught exception -- and only log it once per
+                // failure streak so a persistent error doesn't spam every frame.
+                if (!_lastUpdateErrored)
+                    Logger.LogError($"Error during per-frame update.\n{ex}");
+                _lastUpdateErrored = true;
+            }
+        }
+
+        private void RunUpdate()
         {
             // Initialization via FlightViewEnteredMessage sometimes fires before the flight HUD's
             // instruments have finished spawning, so also poll here as a fallback (mirrors the
@@ -122,7 +147,7 @@ namespace CustomizableUI
             }
             catch (Exception ex)
             {
-                SWLogger.LogError($"Error loading icon \"{fileName}\".\n{ex}");
+                Logger.LogError($"Error loading icon \"{fileName}\".\n{ex}");
                 return new Texture2D(2, 2);
             }
         }
