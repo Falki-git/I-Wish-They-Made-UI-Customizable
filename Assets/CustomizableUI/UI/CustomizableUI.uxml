@@ -21,26 +21,26 @@
                 <ui:VisualElement name="title-group" class="title-group">
                     <ui:Label text="GROUP.NAME" display-tooltip-when-elided="true" name="group-label" class="group-label"/>
                 </ui:VisualElement>
-                <ui:Button text="&gt;" display-tooltip-when-elided="true" name="next-group" focusable="true" class="nav-button group-selector" style="-unity-text-align: middle-center; padding-top: 7px; padding-bottom: 0; padding-left: 8px; padding-right: 0;"/>
+                <ui:Button text="&gt;" display-tooltip-when-elided="true" name="next-group" focusable="true" class="group-selector" style="-unity-text-align: middle-center; padding-top: 7px; padding-bottom: 0; padding-left: 8px; padding-right: 0;"/>
             </ui:VisualElement>
-            <ui:VisualElement name="toggles-row" class="row toggles-row" style="flex-direction: row; justify-content: space-evenly; margin-top: 10px;">
+            <ui:VisualElement name="toggles-row" style="flex-direction: row; justify-content: space-evenly; margin-top: 10px;">
                 <ui:Toggle label="Show UI Group" name="show-toggle" class="led-toggle"/>
                 <ui:VisualElement style="flex-grow: 1; width: 20px;"/>
                 <ui:Toggle label="Follow Navball" name="follow-navball-toggle" class="led-toggle"/>
                 <ui:VisualElement style="flex-grow: 1; width: 20px;"/>
                 <ui:Toggle label="Scale With Navball" name="scale-with-navball-toggle" class="led-toggle"/>
             </ui:VisualElement>
-            <ui:VisualElement name="scale-row" class="row scale-row" style="flex-direction: row; align-items: center; width: 93%; margin-top: 10px;">
-                <ui:Label text="Scale" name="scale-label" class="field-label" style="margin-right: 8px;"/>
+            <ui:VisualElement name="scale-row" style="flex-direction: row; align-items: center; width: 93%; margin-top: 10px;">
+                <ui:Label text="Scale" name="scale-label" style="margin-right: 8px;"/>
                 <ui:Slider name="scale-slider" low-value="0.25" high-value="3" value="1" class="position-slider" style="min-width: 40%;"/>
-                <ui:Label text="100%" name="scale-value-label" class="field-label" style="margin-left: 8px; min-width: 40px; -unity-text-align: middle-right;"/>
+                <ui:Label text="100%" name="scale-value-label" style="margin-left: 8px; min-width: 40px; -unity-text-align: middle-right;"/>
             </ui:VisualElement>
             <ui:VisualElement name="position-row" class="position-row" style="flex-direction: row;">
                 <ui:VisualElement name="position-left-column" style="flex-grow: 1; width: 50%;">
                     <ui:VisualElement name="x-container" style="flex-direction: row; align-items: center; justify-content: flex-end; padding-right: 10px;">
                         <ui:Label text="Position" style="width: 75px;"/>
                         <ui:VisualElement style="flex-grow: 1;"/>
-                        <ui:Label text="X:" name="x-label" class="field-label"/>
+                        <ui:Label text="X:" name="x-label"/>
                         <ui:TextField name="x-field" class="position-field"/>
                     </ui:VisualElement>
                     <ui:VisualElement name="x-slider-container" style="width: 90%; align-items: center; justify-content: center; margin-top: 20px; align-self: center;">
@@ -50,7 +50,7 @@
                 </ui:VisualElement>
                 <ui:VisualElement name="position-right-column" style="flex-grow: 1; width: 50%;">
                     <ui:VisualElement name="y-container" style="flex-direction: row; align-items: center; justify-content: flex-start; padding-left: 10px;">
-                        <ui:Label text="Y:" name="y-label" class="field-label"/>
+                        <ui:Label text="Y:" name="y-label"/>
                         <ui:TextField name="y-field" class="position-field"/>
                     </ui:VisualElement>
                     <ui:VisualElement name="y-slider-container" style="width: 90%; align-items: center; justify-content: center; margin-top: 20px; align-self: center;">
@@ -82,9 +82,9 @@
                         <ui:Button text="" display-tooltip-when-elided="true" name="jump-right" class="position-button" style="background-image: url(&quot;project://database/Assets/CustomizableUI/Copied/assets/images/double-right.png?fileID=2800000&amp;guid=03b0a59042638c44bbd22c72a01b712a&amp;type=3#double-right&quot;);"/>
                     </ui:VisualElement>
                 </ui:VisualElement>
-                <ui:VisualElement name="reset-buttons-column" class="reset-buttons" style="width: 20%; justify-content: space-evenly;">
-                    <ui:Button text="Reset" display-tooltip-when-elided="true" name="reset-button" class="action-button"/>
-                    <ui:Button text="FUBAR" display-tooltip-when-elided="true" name="fubar-button" class="action-button action-button--danger"/>
+                <ui:VisualElement name="reset-buttons-column" style="width: 20%; justify-content: space-evenly;">
+                    <ui:Button text="Reset" display-tooltip-when-elided="true" name="reset-button"/>
+                    <ui:Button text="FUBAR" display-tooltip-when-elided="true" name="fubar-button"/>
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
@@ -93,7 +93,7 @@
                 <ui:Button text="Save Layout" display-tooltip-when-elided="true" name="save-button" class="save-layout" style="-unity-text-align: middle-left; padding-left: 95px;"/>
                 <ui:Button text="Load Layout" display-tooltip-when-elided="true" name="load-button" class="load-layout"/>
             </ui:VisualElement>
-            <ui:Label display-tooltip-when-elided="true" name="message-label" text="Layout reset to initial state." class="notification" style="background-color: rgba(64, 245, 0, 0.4); top: 55px;"/>
+            <ui:Label display-tooltip-when-elided="true" name="notification-label" text="Layout reset to initial state." class="notification" style="top: 55px;"/>
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

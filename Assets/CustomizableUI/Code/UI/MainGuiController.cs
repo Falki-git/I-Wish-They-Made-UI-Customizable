@@ -111,7 +111,7 @@ namespace CustomizableUI.UI
             _saveButtonBaseText = _saveButton.text;
             _loadButton = _root.Q<Button>("load-button");
 
-            _messageLabel = _root.Q<Label>("message-label");
+            _messageLabel = _root.Q<Label>("notification-label");
 
             BuildOverlay();
             RegisterCallbacks();

@@ -15,8 +15,8 @@ MonoBehaviour:
   id: CustomizableUI
   name: Customizable UI
   author: Falki
-  description: Move flight UI elements wherever you want.
-  version: 0.3.3
+  description: Move and scale flight UI elements however you want.
+  version: 1.0.0
   versionCheck: 
   minKsp2Version: 0.2.8.3
   maxKsp2Version: '*'
