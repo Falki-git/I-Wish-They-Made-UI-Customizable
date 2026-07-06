@@ -36,10 +36,37 @@ namespace CustomizableUI.Groups
         /// <summary>See GroupCatalog.GetDefaultAttachToNavball -- a handful of groups default to following the navball.</summary>
         public readonly bool DefaultAttachToNavball;
 
+        /// <summary>See GroupCatalog.GetDefaultScaleWithNavball -- a handful of groups default to scaling with the navball.</summary>
+        public readonly bool DefaultScaleWithNavball;
+
+        public const float MinScale = 0.25f;
+        public const float MaxScale = 3f;
+
         /// <summary>Manual, per-group correction applied only to the overlay's drawn position -- see OverlayCorrections.</summary>
         private readonly Vector2 _overlayCorrection;
 
         public bool AttachToNavball;
+
+        /// <summary>See GroupRegistry.RecalculateForScaleChange -- whether resizing the navball also resizes this group.</summary>
+        public bool ScaleWithNavball;
+
+        private float _scale = 1f;
+
+        /// <summary>
+        /// Uniform size multiplier, applied as Positionable's localScale directly (always
+        /// normalized to Vector3.one at discovery -- see the constructor). Unity scales a
+        /// RectTransform around its own pivot, so this resizes the group in place without
+        /// touching Position -- the pivot (and therefore the group's anchor point) doesn't move.
+        /// </summary>
+        public float Scale
+        {
+            get => _scale;
+            set
+            {
+                _scale = Mathf.Clamp(value, MinScale, MaxScale);
+                Positionable.localScale = Vector3.one * _scale;
+            }
+        }
 
         public Vector3 Position
         {
@@ -79,6 +106,16 @@ namespace CustomizableUI.Groups
             DefaultPosition = Positionable.position;
             DefaultAttachToNavball = GroupCatalog.GetDefaultAttachToNavball(key);
             AttachToNavball = DefaultAttachToNavball;
+            DefaultScaleWithNavball = GroupCatalog.GetDefaultScaleWithNavball(key);
+            ScaleWithNavball = DefaultScaleWithNavball;
+
+            // Redux doesn't always destroy/recreate these GameObjects across scene transitions
+            // (e.g. flight <-> map view) -- if this same widget survived from a previous flight
+            // session with a Scale already applied, reading its live localScale here would adopt
+            // the ALREADY-SCALED value as this session's "100%", compounding further on every
+            // re-entry instead of resetting to the widget's true natural size.
+            Positionable.localScale = Vector3.one;
+
             _isActive = true;
             IsActive = true;
         }
@@ -95,8 +132,11 @@ namespace CustomizableUI.Groups
 
         private Vector2 Pivot => RectTransform != null ? RectTransform.pivot : new Vector2(0.5f, 0.5f);
 
-        public float LeftEdge => Position.x - WidthPx * Pivot.x + _overlayCorrection.x;
-        public float TopEdge => Position.y + HeightPx * (1f - Pivot.y) + _overlayCorrection.y;
+        // _overlayCorrection was measured in raw screen pixels at Scale == 1, on a widget subtree
+        // that scales along with Positionable -- so the gap it corrects for grows/shrinks by the
+        // same factor as everything else in that subtree, and has to be scaled here to match.
+        public float LeftEdge => Position.x - WidthPx * Pivot.x + _overlayCorrection.x * Scale;
+        public float TopEdge => Position.y + HeightPx * (1f - Pivot.y) + _overlayCorrection.y * Scale;
 
         // ---- Anchor math: the pivot-space X/Y needed to put an edge/center at a screen edge/center ----
 
@@ -154,6 +194,8 @@ namespace CustomizableUI.Groups
             Position = DefaultPosition;
             IsActive = true;
             AttachToNavball = DefaultAttachToNavball;
+            ScaleWithNavball = DefaultScaleWithNavball;
+            Scale = 1f;
         }
 
         public GroupLayout ToLayout()
@@ -167,6 +209,8 @@ namespace CustomizableUI.Groups
                 PositionZ = pos.z,
                 IsActive = IsActive,
                 AttachToNavball = AttachToNavball,
+                Scale = Scale,
+                ScaleWithNavball = ScaleWithNavball,
             };
         }
 
@@ -175,6 +219,8 @@ namespace CustomizableUI.Groups
             Position = new Vector3(layout.PositionX, layout.PositionY, layout.PositionZ);
             IsActive = layout.IsActive;
             AttachToNavball = layout.AttachToNavball;
+            Scale = layout.Scale;
+            ScaleWithNavball = layout.ScaleWithNavball;
         }
     }
 }

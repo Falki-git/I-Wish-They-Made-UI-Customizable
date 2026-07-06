@@ -25,6 +25,7 @@ namespace CustomizableUI.UI
         private VisualElement _body;
 
         private Toggle _followNavballToggle;
+        private Toggle _scaleWithNavballToggle;
         private Toggle _showToggle;
 
         private TextField _xField;
@@ -32,6 +33,9 @@ namespace CustomizableUI.UI
 
         private Slider _xSlider;
         private Slider _ySlider;
+
+        private Slider _scaleSlider;
+        private Label _scaleValueLabel;
 
         private Button _jumpUpButton;
         private Button _jumpDownButton;
@@ -74,6 +78,7 @@ namespace CustomizableUI.UI
             _body = _root.Q<VisualElement>("body");
 
             _followNavballToggle = _root.Q<Toggle>("follow-navball-toggle");
+            _scaleWithNavballToggle = _root.Q<Toggle>("scale-with-navball-toggle");
             _showToggle = _root.Q<Toggle>("show-toggle");
 
             _xField = _root.Q<TextField>("x-field");
@@ -83,6 +88,9 @@ namespace CustomizableUI.UI
 
             _xSlider = _root.Q<Slider>("x-slider");
             _ySlider = _root.Q<Slider>("y-slider");
+
+            _scaleSlider = _root.Q<Slider>("scale-slider");
+            _scaleValueLabel = _root.Q<Label>("scale-value-label");
 
             _jumpUpButton = _root.Q<Button>("jump-up");
             _jumpDownButton = _root.Q<Button>("jump-down");
@@ -127,6 +135,12 @@ namespace CustomizableUI.UI
                     Registry.SelectedGroup.AttachToNavball = evt.newValue;
             });
 
+            _scaleWithNavballToggle.RegisterValueChangedCallback(evt =>
+            {
+                if (Registry.SelectedGroup != null)
+                    Registry.SelectedGroup.ScaleWithNavball = evt.newValue;
+            });
+
             _showToggle.RegisterValueChangedCallback(evt =>
             {
                 if (Registry.SelectedGroup != null)
@@ -138,6 +152,22 @@ namespace CustomizableUI.UI
 
             _xSlider.RegisterValueChangedCallback(evt => MutateSelected(g => g.Position = WithX(g.Position, evt.newValue)));
             _ySlider.RegisterValueChangedCallback(evt => MutateSelected(g => g.Position = WithY(g.Position, evt.newValue)));
+
+            _scaleSlider.RegisterValueChangedCallback(evt =>
+            {
+                var selected = Registry.SelectedGroup;
+                if (selected == null)
+                    return;
+
+                var previousScale = selected.Scale;
+                selected.Scale = evt.newValue;
+                Registry.RecalculateForScaleChange(selected, previousScale);
+
+                // Scaling changes the group's own on-screen width/height, which shifts where its
+                // edges touch the screen -- refresh everything (not just the label) so the X/Y
+                // sliders' ranges stay in sync and still let it travel all the way to the edge.
+                RefreshForSelection();
+            });
 
             _jumpUpButton.clicked += () => MutateSelected(JumpUp);
             _jumpDownButton.clicked += () => MutateSelected(JumpDown);
@@ -155,7 +185,16 @@ namespace CustomizableUI.UI
                 if (selected == null)
                     return;
 
+                var previousScale = selected.Scale;
                 MutateSelected(g => g.ResetToDefault());
+
+                // Only cascade when the navball itself was reset -- ResetToDefault() already put
+                // `selected` back at its own correct absolute Position, so rescaling its offset
+                // from the navball afterward (what this does for a directly-scaled, non-navball
+                // group) would incorrectly nudge it away from that just-restored default.
+                if (selected.Key == GroupCatalog.NavballKey)
+                    Registry.RecalculateForScaleChange(selected, previousScale);
+
                 ShowMessage($"Group {selected.DisplayName} reset.");
                 RefreshForSelection();
             };
@@ -265,6 +304,8 @@ namespace CustomizableUI.UI
 
             _followNavballToggle.SetValueWithoutNotify(selected.AttachToNavball);
             _followNavballToggle.SetEnabled(selected.Key != GroupCatalog.NavballKey);
+            _scaleWithNavballToggle.SetValueWithoutNotify(selected.ScaleWithNavball);
+            _scaleWithNavballToggle.SetEnabled(selected.Key != GroupCatalog.NavballKey);
             _showToggle.SetValueWithoutNotify(selected.IsActive);
 
             var pos = selected.Position;
@@ -275,7 +316,15 @@ namespace CustomizableUI.UI
             SetSliderRangeAndValue(_ySlider, selected.VerticalLowerBottom, selected.VerticalUpperTop, pos.y);
 
             RefreshPositionFields(selected);
+
+            // Scale's range is fixed (GroupHandle.MinScale/MaxScale), set once in UXML, so unlike
+            // the position sliders this never needs the widen/narrow dance -- just the value.
+            _scaleSlider.SetValueWithoutNotify(selected.Scale);
+            RefreshScaleLabel(selected);
         }
+
+        private void RefreshScaleLabel(GroupHandle selected) =>
+            _scaleValueLabel.text = $"{Mathf.Round(selected.Scale * 100f):F0}%";
 
         /// <summary>
         /// Changes a Slider's range and value together without ever letting `.value` sit outside

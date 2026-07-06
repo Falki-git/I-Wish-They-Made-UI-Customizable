@@ -13,5 +13,7 @@ namespace CustomizableUI.Groups
         public float PositionZ;
         public bool IsActive;
         public bool AttachToNavball;
+        public float Scale = 1f;
+        public bool ScaleWithNavball;
     }
 }

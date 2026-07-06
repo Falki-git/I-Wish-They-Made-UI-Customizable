@@ -1,6 +1,6 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <Style src="project://database/Assets/CustomizableUI/UI/CustomizableUI.uss?fileID=7433441132597879392&amp;guid=cb912fd60eae1904fa0e7e1512e9b4fa&amp;type=3#CustomizableUI"/>
-    <ui:VisualElement name="root" class="root" style="height: 486px;">
+    <ui:VisualElement name="root" class="root" style="height: 526px;">
         <ui:VisualElement name="header" class="header">
             <ui:VisualElement name="title__container" class="title__container">
                 <ui:VisualElement name="icon" class="icon"/>
@@ -27,10 +27,19 @@
                 <ui:Toggle label="Show UI Group" name="show-toggle" class="led-toggle"/>
                 <ui:VisualElement style="flex-grow: 1; width: 20px;"/>
                 <ui:Toggle label="Follow Navball" name="follow-navball-toggle" class="led-toggle"/>
+                <ui:VisualElement style="flex-grow: 1; width: 20px;"/>
+                <ui:Toggle label="Scale With Navball" name="scale-with-navball-toggle" class="led-toggle"/>
+            </ui:VisualElement>
+            <ui:VisualElement name="scale-row" class="row scale-row" style="flex-direction: row; align-items: center; width: 93%; margin-top: 10px;">
+                <ui:Label text="Scale" name="scale-label" class="field-label" style="margin-right: 8px;"/>
+                <ui:Slider name="scale-slider" low-value="0.25" high-value="3" value="1" class="position-slider" style="min-width: 40%;"/>
+                <ui:Label text="100%" name="scale-value-label" class="field-label" style="margin-left: 8px; min-width: 40px; -unity-text-align: middle-right;"/>
             </ui:VisualElement>
             <ui:VisualElement name="position-row" class="position-row" style="flex-direction: row;">
                 <ui:VisualElement name="position-left-column" style="flex-grow: 1; width: 50%;">
                     <ui:VisualElement name="x-container" style="flex-direction: row; align-items: center; justify-content: flex-end; padding-right: 10px;">
+                        <ui:Label text="Position" style="width: 75px;"/>
+                        <ui:VisualElement style="flex-grow: 1;"/>
                         <ui:Label text="X:" name="x-label" class="field-label"/>
                         <ui:TextField name="x-field" class="position-field"/>
                     </ui:VisualElement>
@@ -51,7 +60,9 @@
                 </ui:VisualElement>
             </ui:VisualElement>
             <ui:VisualElement name="position-adjustments" style="flex-direction: row; width: 100%; margin-top: 10px;">
-                <ui:VisualElement name="fine-adjustments-column" style="width: 80%; flex-direction: row; justify-content: center;">
+                <ui:VisualElement name="fine-adjustments-column" style="width: 80%; flex-direction: row; justify-content: flex-start; padding-left: 20px;">
+                    <ui:Label text="Fine-tune" style="width: 75px;"/>
+                    <ui:VisualElement style="width: 45px;"/>
                     <ui:VisualElement name="fine-buttons-container-1" class="fine-buttons-container" style="flex-grow: 1;">
                         <ui:Button text="" display-tooltip-when-elided="true" name="jump-left" class="position-button" style="background-image: url(&quot;project://database/Assets/CustomizableUI/Copied/assets/images/double-left.png?fileID=2800000&amp;guid=cbe1ddb15c1b3074a97d777212854ec9&amp;type=3#double-left&quot;);"/>
                     </ui:VisualElement>
@@ -79,7 +90,7 @@
         </ui:VisualElement>
         <ui:VisualElement name="footer" class="footer">
             <ui:VisualElement name="save-load-row" style="flex-direction: row; justify-content: space-around; width: 100%; padding-top: 5px;">
-                <ui:Button text="Save Layout&#10;" display-tooltip-when-elided="true" name="save-button" class="save-layout"/>
+                <ui:Button text="Save Layout" display-tooltip-when-elided="true" name="save-button" class="save-layout pending-changes"/>
                 <ui:Button text="Load Layout" display-tooltip-when-elided="true" name="load-button" class="load-layout"/>
             </ui:VisualElement>
             <ui:Label display-tooltip-when-elided="true" name="message-label" text="Layout reset to initial state." class="notification" style="background-color: rgba(64, 245, 0, 0.4); top: 55px;"/>

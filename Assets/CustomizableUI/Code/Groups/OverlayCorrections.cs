@@ -15,9 +15,11 @@ namespace CustomizableUI.Groups
     ///
     /// These values were measured directly from screenshots -- comparing the overlay's drawn
     /// position against where the group's content actually renders, at the user's screen
-    /// resolution -- not derived from any layout data. They're an approximation and may need
-    /// further manual tuning; this is a deliberately narrow, explicit exception, not a general
-    /// heuristic (see GroupHandle/TransformExtensions for the actual geometry system).
+    /// resolution and at Scale == 1 -- not derived from any layout data. They're an approximation
+    /// and may need further manual tuning; this is a deliberately narrow, explicit exception, not
+    /// a general heuristic (see GroupHandle/TransformExtensions for the actual geometry system).
+    /// GroupHandle.LeftEdge/TopEdge multiply these by Scale, since the gap they correct for lives
+    /// in the same scaled subtree as the rest of the widget.
     /// </summary>
     public static class OverlayCorrections
     {

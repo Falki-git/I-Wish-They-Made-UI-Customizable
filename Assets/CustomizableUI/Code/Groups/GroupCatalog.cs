@@ -37,9 +37,10 @@ namespace CustomizableUI.Groups
         public static IReadOnlyCollection<string> KnownKeys => DisplayNames.Keys;
 
         /// <summary>
-        /// Groups visually/functionally tied to the navball closely enough that moving the
-        /// navball and leaving them behind would look broken -- these default to following it,
-        /// and players have to opt out via the "follow navball" toggle instead of opting in.
+        /// Groups visually/functionally tied to the navball closely enough that moving (or
+        /// resizing) the navball and leaving them behind would look broken -- these default to
+        /// both following and scaling with it, and players have to opt out via the "follow
+        /// navball" / "scale with navball" toggles instead of opting in.
         /// </summary>
         private static readonly HashSet<string> DefaultAttachToNavballKeys = new()
         {
@@ -49,6 +50,9 @@ namespace CustomizableUI.Groups
         };
 
         public static bool GetDefaultAttachToNavball(string key) => DefaultAttachToNavballKeys.Contains(key);
+
+        /// <summary>Same default set as GetDefaultAttachToNavball -- see that method's doc comment.</summary>
+        public static bool GetDefaultScaleWithNavball(string key) => DefaultAttachToNavballKeys.Contains(key);
 
         /// <summary>Exposed so GroupRegistry can warn if one of these expected keys isn't discovered at runtime.</summary>
         public static IReadOnlyCollection<string> DefaultAttachToNavballKeySet => DefaultAttachToNavballKeys;

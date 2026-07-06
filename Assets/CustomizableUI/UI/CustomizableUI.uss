@@ -3,6 +3,8 @@
     --background-gray-1-translucent: rgba(33, 39, 46, 0.5);
     --black-1: rgb(17, 20, 26);
     --black-1-translucent: rgba(17, 20, 26, 0.5);
+    --yellowish: rgb(237, 208, 147);
+    --yellowish-translucent: rgba(237, 208, 147, 0.1);
     --background-gray-2: rgb(28, 34, 42);
     --background-gray-2-translucent: rgba(28, 34, 42, 0.5);
     --background-gray-3: rgb(46, 53, 64);
@@ -389,6 +391,9 @@
     background-position-x: left 65px;
     -unity-background-image-tint-color: rgb(242, 242, 242);
     padding-left: 40px;
+}
+
+.pending-changes {
 }
 
 .load-layout {
