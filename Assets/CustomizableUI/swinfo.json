@@ -1,0 +1,25 @@
+{
+  "spec": "2.0",
+  "mod_id": "CustomizableUI",
+  "name": "Customizable UI",
+  "author": "Falki",
+  "description": "Move and scale flight UI elements however you want.",
+  "source": "https://github.com/Falki-git/I-Wish-They-Made-UI-Customizable/tree/redux/master",
+  "version": "1.0.0",
+  "version_check": "TODO",
+  "ksp2_version": {
+    "min": "0.2.8.3",
+    "max": "*"
+  },
+  "dependencies": [
+    {
+      "id": "SpaceWarp2",
+      "version": {
+        "min": "2.0.0",
+        "max": "*"
+      }
+    }
+  ],
+  "conflicts": [],
+  "main_assembly": "CustomizableUI.dll"
+}

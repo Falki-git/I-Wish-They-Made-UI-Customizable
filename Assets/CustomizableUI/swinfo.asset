@@ -15,12 +15,12 @@ MonoBehaviour:
   id: CustomizableUI
   name: Customizable UI
   author: Falki
-  description: Move flight UI elements wherever you want.
-  version: 0.3.3
-  versionCheck: 
+  description: Move and scale flight UI elements however you want.
+  version: 1.0.0
+  versionCheck: TODO
   minKsp2Version: 0.2.8.3
   maxKsp2Version: '*'
-  source: 
+  source: https://github.com/Falki-git/I-Wish-They-Made-UI-Customizable/tree/redux/master
   allGroup: {fileID: 11400000, guid: 816e92f6f3efb624c9d3b5f01ae7fccc, type: 2}
   partsGroup: {fileID: 11400000, guid: d04a80c6edf116a488fcec2c09b2890f, type: 2}
   missionsGroup: {fileID: 11400000, guid: 0be121fe0b8157b458a05a83cfa32cb7, type: 2}

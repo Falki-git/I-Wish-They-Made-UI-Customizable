@@ -111,7 +111,7 @@ namespace CustomizableUI.UI
             _saveButtonBaseText = _saveButton.text;
             _loadButton = _root.Q<Button>("load-button");
 
-            _messageLabel = _root.Q<Label>("message-label");
+            _messageLabel = _root.Q<Label>("notification-label");
 
             BuildOverlay();
             RegisterCallbacks();
@@ -442,8 +442,6 @@ namespace CustomizableUI.UI
                     _messageLabel.RemoveFromClassList("notification--show");
                 }
             }
-            
-            // _messageLabel.style.display = showMessage ? DisplayStyle.Flex : DisplayStyle.None;
         }
 
         private void UpdateOverlay(GroupHandle selected)
