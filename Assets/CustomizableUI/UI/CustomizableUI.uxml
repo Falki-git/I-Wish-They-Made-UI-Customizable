@@ -90,7 +90,7 @@
         </ui:VisualElement>
         <ui:VisualElement name="footer" class="footer">
             <ui:VisualElement name="save-load-row" style="flex-direction: row; justify-content: space-around; width: 100%; padding-top: 5px;">
-                <ui:Button text="Save Layout" display-tooltip-when-elided="true" name="save-button" class="save-layout pending-changes"/>
+                <ui:Button text="Save Layout" display-tooltip-when-elided="true" name="save-button" class="save-layout" style="-unity-text-align: middle-left; padding-left: 95px;"/>
                 <ui:Button text="Load Layout" display-tooltip-when-elided="true" name="load-button" class="load-layout"/>
             </ui:VisualElement>
             <ui:Label display-tooltip-when-elided="true" name="message-label" text="Layout reset to initial state." class="notification" style="background-color: rgba(64, 245, 0, 0.4); top: 55px;"/>

@@ -60,6 +60,9 @@ namespace CustomizableUI.UI
         private const float MessageDurationSeconds = 3f;
         private bool _messageBeingShown;
 
+        private const string PendingChangesClass = "pending-changes";
+        private string _saveButtonBaseText;
+
         private VisualElement _overlay;
 
         private GroupRegistry Registry => GroupRegistry.Instance;
@@ -105,6 +108,7 @@ namespace CustomizableUI.UI
             _resetButton = _root.Q<Button>("reset-button");
             _fubarButton = _root.Q<Button>("fubar-button");
             _saveButton = _root.Q<Button>("save-button");
+            _saveButtonBaseText = _saveButton.text;
             _loadButton = _root.Q<Button>("load-button");
 
             _messageLabel = _root.Q<Label>("message-label");
@@ -131,20 +135,29 @@ namespace CustomizableUI.UI
 
             _followNavballToggle.RegisterValueChangedCallback(evt =>
             {
-                if (Registry.SelectedGroup != null)
-                    Registry.SelectedGroup.AttachToNavball = evt.newValue;
+                if (Registry.SelectedGroup == null)
+                    return;
+
+                Registry.SelectedGroup.AttachToNavball = evt.newValue;
+                MarkPendingChanges();
             });
 
             _scaleWithNavballToggle.RegisterValueChangedCallback(evt =>
             {
-                if (Registry.SelectedGroup != null)
-                    Registry.SelectedGroup.ScaleWithNavball = evt.newValue;
+                if (Registry.SelectedGroup == null)
+                    return;
+
+                Registry.SelectedGroup.ScaleWithNavball = evt.newValue;
+                MarkPendingChanges();
             });
 
             _showToggle.RegisterValueChangedCallback(evt =>
             {
-                if (Registry.SelectedGroup != null)
-                    Registry.SelectedGroup.IsActive = evt.newValue;
+                if (Registry.SelectedGroup == null)
+                    return;
+
+                Registry.SelectedGroup.IsActive = evt.newValue;
+                MarkPendingChanges();
             });
 
             _xField.RegisterValueChangedCallback(evt => MutateSelected(g => g.Position = WithX(g.Position, ParseOrKeep(evt.newValue, g.Position.x))));
@@ -162,6 +175,7 @@ namespace CustomizableUI.UI
                 var previousScale = selected.Scale;
                 selected.Scale = evt.newValue;
                 Registry.RecalculateForScaleChange(selected, previousScale);
+                MarkPendingChanges();
 
                 // Scaling changes the group's own on-screen width/height, which shifts where its
                 // edges touch the screen -- refresh everything (not just the label) so the X/Y
@@ -202,6 +216,7 @@ namespace CustomizableUI.UI
             _fubarButton.clicked += () =>
             {
                 Registry.ResetAllToDefault();
+                MarkPendingChanges();
                 ShowMessage("Layout reset to initial state.");
                 RefreshForSelection();
             };
@@ -209,12 +224,16 @@ namespace CustomizableUI.UI
             _saveButton.clicked += () =>
             {
                 SaveLoadUtility.SaveData();
+                ClearPendingChanges();
                 ShowMessage("Layout saved.");
             };
 
             _loadButton.clicked += () =>
             {
                 SaveLoadUtility.LoadData();
+                // The just-loaded layout is now exactly what's on disk, so there's nothing left
+                // to save until the next change.
+                ClearPendingChanges();
                 ShowMessage("Layout loaded.");
                 RefreshForSelection();
             };
@@ -245,6 +264,19 @@ namespace CustomizableUI.UI
             var previous = selected.Position;
             mutation(selected);
             Registry.RecalculatePositionsOfGroupsAttachedToNavball(selected, previous);
+            MarkPendingChanges();
+        }
+
+        private void MarkPendingChanges()
+        {
+            _saveButton.AddToClassList(PendingChangesClass);
+            _saveButton.text = $"{_saveButtonBaseText} *";
+        }
+
+        private void ClearPendingChanges()
+        {
+            _saveButton.RemoveFromClassList(PendingChangesClass);
+            _saveButton.text = _saveButtonBaseText;
         }
 
         // ---- Smart jump (ported from the legacy IMGUI D-pad buttons) ----
