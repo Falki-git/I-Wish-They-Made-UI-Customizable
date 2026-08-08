@@ -6,25 +6,31 @@ Guidance for Claude Code when working in this repository.
 
 - **NEVER commit or push without the user explicitly asking.** Do not commit as part of
   completing a task; wait for a direct instruction such as "commit", "commit and push", etc.
-- **NEVER commit directly to `main` OR `development`.** Both are protected integration branches;
-  changes reach them **only by merging a feature/bugfix branch**, never by a direct commit.
-- **Branch model (this project):**
-  - **`main`** — the released-version codebase. Holds the *exact state of the currently released
-    version*; nothing lands on it except a finished, published release (normally by merging
-    `development`). Never commit here directly.
-  - **`development`** — holds the not-yet-released code under active development. Cut from `main`;
-    the base for ongoing work. **Never commit here directly** — changes arrive only via merged
-    feature/bugfix branches.
+- **NEVER commit directly to `redux/master` OR `redux/development`.** Both are protected
+  integration branches; changes reach them **only by merging a feature/bugfix branch**, never by a
+  direct commit.
+- **Branch model (this project):** this repo predates the Redux port, so the *Redux* codebase lives
+  on the `redux/*` branches and the original SpaceWarp-1.x codebase stays on `master`. All current
+  work happens on the `redux/*` side.
+  - **`redux/master`** — the released Redux codebase. Holds the *exact state of the currently
+    released version*; nothing lands on it except a finished, published release (normally by
+    merging `redux/development`). Never commit here directly.
+  - **`redux/development`** — the not-yet-released Redux code under active development. Cut from
+    `redux/master`; the base for ongoing work. **Never commit here directly** — changes arrive only
+    via merged feature/bugfix branches.
   - **Feature/bugfix branches** — **every feature or bugfix starts on its own new branch cut off
-    `development`.** Do the work there. When it's ready, the user will ask you to **open a PR
-    against `development`**; the branch is **merged back when the user says so**, and the user
+    `redux/development`.** Do the work there. When it's ready, the user will ask you to **open a PR
+    against `redux/development`**; the branch is **merged back when the user says so**, and the user
     **merges manually**. Don't merge yourself.
-  - **`pre-redux`** — a frozen archive of the original *pre-Redux* released codebase (the
-    SpaceWarp-1.x version, at the pre-template `main` tip). Reference/history only; **not actively
-    developed**. Don't branch work off it or commit to it.
-  - **No `redux/master` branch for this project.** Unlike the generic Redux-beta template
-    convention, here `main` *is* the main branch — there is no separate "ported-for-Redux"
-    branch. Ignore any `redux/master` guidance for this repo.
+  - **`master`** — the original *pre-Redux* released codebase (the SpaceWarp-1.x version), plus its
+    old feature branches (`dev`, `fix-for-0.1.3.0`, `port-legacy-ui-to-redux`, …). Effectively a
+    frozen archive: reference/history only, **not actively developed**. Don't branch work off it or
+    commit to it. (It is still the repo's GitHub default branch, so `gh` and `git push` defaults may
+    point at it — always name the base branch explicitly.)
+  - **`redux/fixes`, `redux/final-fixes`** — spent feature branches already merged into
+    `redux/master`. Don't reuse them; cut a fresh branch instead.
+  - Ignore the generic Redux-template convention of a plain `main`/`development` pair — **this repo
+    has no `main`, no `development` and no `pre-redux` branch.**
 
 ## What this project is
 
