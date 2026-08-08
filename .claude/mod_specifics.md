@@ -12,8 +12,8 @@ player opens an editor window from the flight app-bar button (or `CTRL+I`), pick
 "group", then nudges / jumps / snaps it around the screen, scales it, or toggles its
 visibility.
 
-- **Author:** Falki · **Current version:** `1.0.0` (Redux/SpaceWarp2) · **Legacy mod_id:**
-  `com.github.falki.customizable-ui` · **Last legacy version:** `0.3.2`
+- **Author:** Falki · **Current version:** `1.0.1` (Redux/SpaceWarp2, requires KSP2 ≥ `0.2.9.0`)
+  · **Legacy mod_id:** `com.github.falki.customizable-ui` · **Last legacy version:** `0.3.2`
 - **Legacy source (read-only reference):** `E:\GitHub\KSP2\CustomizableUI Legacy`
   (Unity/BepInEx project; core code under `CustomizableUIProject\`).
 - **Legacy upstream:** <https://github.com/Falki-git/I-Wish-They-Made-UI-Customizable>
@@ -34,8 +34,8 @@ to how the mod currently works.
 | `Groups/GroupLayout.cs` | Plain-data (de)serialized shape of one group's saved state — plain floats, not `Vector3`, so it doesn't depend on how the JSON library (de)serializes Unity value types. |
 | `Groups/GroupRegistry.cs` | Singleton owning the discovered `List<GroupHandle>` for the current flight session. Discovers groups dynamically from `UIFlightHud`'s live children (plus the app-bar `ButtonBar`) instead of a hardcoded name/index table; warns (doesn't crash) on duplicate names or missing expected groups. Handles navball-follow position cascading and navball-scale cascading. |
 | `Groups/OverlayCorrections.cs` | Small, explicit per-group pixel correction table for the selection overlay only (a few groups' resolved `RectTransform` bounds don't match where their content visually renders) — movement/slider math is untouched by this. |
-| `UI/MainGuiController.cs` | Wires the UXML controls to `GroupRegistry` (MVVM-ish, no ViewModelBase). Owns the D-pad/jump/nudge buttons, X/Y/scale fields+sliders, toggles, Save/Load/Reset/FUBAR, the pending-changes indicator on Save, and the yellow selection overlay (converted into UitkForKsp2's fixed reference resolution). |
-| `UI/SceneController.cs` | Owns the editor window's open/closed state; builds/destroys the `UIDocument` via `UitkForKsp2.API.Window.Create` and syncs the app-bar toggle. |
+| `UI/MainGuiController.cs` | Wires the UXML controls to `GroupRegistry` (MVVM-ish, no ViewModelBase). Owns the D-pad/jump/nudge buttons, X/Y/scale fields+sliders, toggles, Save/Load/Reset/FUBAR, the pending-changes indicator on Save, and the yellow selection overlay (converted into UitkForKsp2's fixed reference resolution). All of that wiring lives in `BuildWindow()`, which is re-runnable — see "PanelRenderer" below. |
+| `UI/SceneController.cs` | Owns the editor window's open/closed state; builds/destroys the window's `PanelRenderer` via `UitkForKsp2.API.Window.Create` and syncs the app-bar toggle. |
 | `UI/Uxmls.cs` | Loads the mod's UXML through Addressables, lazily, on first access. |
 | `Utilities/SaveLoadUtility.cs` | Saves/loads the layout as a **versioned** JSON file (`SaveFile { Version, Groups }`) in the mod's own data folder (not per-KSP2-save, matching legacy scope). Detects and transparently reads the old unversioned bare-array format from pre-1.0 saves. |
 | `Utilities/Settings.cs` | `SWConfiguration`-backed keybind config (`EnableKeybinding`, `Keybind1`/`Keybind2`, default `CTRL+I`). |
@@ -44,6 +44,41 @@ to how the mod currently works.
 The 15 known top-level groups (GameObject key → display name) are listed in
 `GroupCatalog.cs`'s `DisplayNames` map; see that file rather than duplicating the list here.
 
+## PanelRenderer (Unity 6.5 / KSP2 0.2.9.0) — read before touching the editor window
+
+The window is **not** a `UIDocument`. As of Unity `6000.5.0f1` / UitkForKsp2 `26w32b`,
+`UitkForKsp2.API.Window.Create` returns a **`UnityEngine.UIElements.PanelRenderer`** and never
+adds a `UIDocument` to the window GameObject. Two traps follow from that:
+
+- **`GetComponent<UIDocument>()` still compiles and silently returns `null`.** `UIDocument`
+  wasn't removed from the engine, so a stale port fails only at runtime, as an NRE in
+  `OnEnable`. Same for `var window = Window.Create(...)` — `var` absorbs the return-type change
+  without a compile error. Spell `PanelRenderer` out explicitly so the next such change is a
+  build failure.
+- **`PanelRenderer.rootVisualElement` is `internal`.** Use UitkForKsp2's extensions instead:
+  `GetPanelRoot()` replaces `rootVisualElement` (the full-panel element — what the selection
+  overlay hangs off), and `GetWindowRoot()` replaces `rootVisualElement[0]` (it already descends
+  through the `TemplateContainer` wrappers, so don't index into it again).
+
+**Cached `VisualElement`s do not survive a panel rebuild.**
+`PanelRenderer.InitRootVisualElement` clears the old tree with
+`VisualElementClearOptions.RecursiveReleaseResources` and clones a fresh one, leaving every
+cached element pointing at *released* memory. That does **not** surface as a clean NRE — touching
+a released element's `style`/`computedStyle` reads freed layout memory and throws from inside
+`UnmanagedDataStore`, once per frame out of `Update()`. Orbital Survey hit exactly this after
+the 6.5 update. `MainGuiController` therefore:
+
+- puts every element lookup and callback registration in `BuildWindow()`, which is safe to
+  re-run, and re-runs it from a `RegisterUIReloadCallback` handler (unregistered in `OnDisable`
+  so re-enabling doesn't stack callbacks);
+- gates `Update()` behind `_isWired`, which is false between a rebuild and its re-wire;
+- re-applies state the fresh UXML clone doesn't carry — the pending-changes marker on Save
+  (`_hasPendingChanges`) and the notification label's shown/hidden flag.
+
+Anything that subscribes a window-owned handler to an object that **outlives the window** must
+unsubscribe on teardown, for the same reason. (`GroupRegistry`/`SaveLoadUtility` expose no
+events today, so there's currently nothing to unsubscribe.)
+
 ## Known limitations
 
 - **ORBITAL.INFO (`OrbitalReadoutInstrument_Widget(Clone)`) cannot currently be selected.**
@@ -51,7 +86,8 @@ The 15 known top-level groups (GameObject key → display name) are listed in
   group (classic uGUI/`RectTransform`), this one is implemented with its own **UI
   Toolkit** window (`Window.Create(..., Parent = this.transform)`), and
   `UitkForKsp2.API.Window`'s internal `CreateInternal` builds that window's GameObject as a
-  plain `Transform` + `UIDocument` with **no `RectTransform` anywhere in the subtree**.
+  plain `Transform` + `PanelRenderer` (a `UIDocument` before Unity 6.5) with **no
+  `RectTransform` anywhere in the subtree**.
   `GroupRegistry.Initialize`'s discovery loop requires a `RectTransform`
   (`TransformExtensions.ResolvePositionable`), so this group is silently skipped before it's
   even added to the discovered set. Fixing this needs a real design change — an abstraction

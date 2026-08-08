@@ -6,18 +6,25 @@ Guidance for Claude Code when working in this repository.
 
 - **NEVER commit or push without the user explicitly asking.** Do not commit as part of
   completing a task; wait for a direct instruction such as "commit", "commit and push", etc.
-- **NEVER commit directly to `master`/`main`.** That branch always holds the *exact state of
-  the currently released version* — nothing lands on it except a finished, published release.
-- **Branch model:**
-  - Ongoing development happens on a **`dev`/`development`** branch (pre-release integration).
-  - **Every feature or bugfix starts on its own new branch.** Create a branch off the
-    appropriate base before doing the work — never work directly on `dev`/`development` or
-    `master`/`main`.
-  - When the work is ready, the user will ask you to **open a PR against `dev`/`development`**;
-    the user **merges the PR manually**. Don't merge yourself.
-  - **Redux beta exception (current):** while Redux is in beta, the published Redux-compatible
-    codebase for a mod lives on a **`redux/master`** branch. Feature/bugfix branches are cut
-    **off `redux/master`** and merged back into it when ready (via a PR you're asked to open).
+- **NEVER commit directly to `main` OR `development`.** Both are protected integration branches;
+  changes reach them **only by merging a feature/bugfix branch**, never by a direct commit.
+- **Branch model (this project):**
+  - **`main`** — the released-version codebase. Holds the *exact state of the currently released
+    version*; nothing lands on it except a finished, published release (normally by merging
+    `development`). Never commit here directly.
+  - **`development`** — holds the not-yet-released code under active development. Cut from `main`;
+    the base for ongoing work. **Never commit here directly** — changes arrive only via merged
+    feature/bugfix branches.
+  - **Feature/bugfix branches** — **every feature or bugfix starts on its own new branch cut off
+    `development`.** Do the work there. When it's ready, the user will ask you to **open a PR
+    against `development`**; the branch is **merged back when the user says so**, and the user
+    **merges manually**. Don't merge yourself.
+  - **`pre-redux`** — a frozen archive of the original *pre-Redux* released codebase (the
+    SpaceWarp-1.x version, at the pre-template `main` tip). Reference/history only; **not actively
+    developed**. Don't branch work off it or commit to it.
+  - **No `redux/master` branch for this project.** Unlike the generic Redux-beta template
+    convention, here `main` *is* the main branch — there is no separate "ported-for-Redux"
+    branch. Ignore any `redux/master` guidance for this repo.
 
 ## What this project is
 
@@ -27,7 +34,7 @@ game's reference assemblies, the ThunderKit build pipeline, and a skeleton for o
 mods. Each mod you build lives in its own folder under `Assets/` and is packaged by
 ThunderKit into a loadable mod.
 
-- **Engine:** Unity `6000.4.1f1` (Unity 6.4)
+- **Engine:** Unity `6000.5.0f1` (Unity 6.5)
 - **Modding stack:** ReduxLib (loader) → SpaceWarp2 (mod API) → your mod
 - **Build/packaging:** ThunderKit (Unity editor pipelines) — NOT a plain `dotnet build`
 
@@ -144,6 +151,20 @@ A `publicize.bat` (NStrip) exists to produce an all-public copy, but:
   Use the mod's name for `<modname>` so log lines are tagged `<modname>|<ClassName>`.
   (`GetType()` can't be used in a field initializer, so assign in the constructor there.
   Decompiled game code uses `Debug.Log*` heavily — that's the game, not you.)
+
+## Game log
+
+The KSP2 player log — including this mod's `ReduxLib` logger output, stack traces, and Unity
+errors — is written to:
+
+```
+C:\Users\gfalk\AppData\LocalLow\Intercept Games\Kerbal Space Program 2\Player.log
+```
+
+Check this file directly (read it) whenever debugging a runtime issue, verifying a fix, or
+when the user reports unexpected in-game behavior — don't wait for the user to paste log
+contents or state the path. The file is **overwritten fresh each time the game runs**, so its
+current contents always reflect the most recent test session only.
 
 ## PatchManager Lua patches (Redux6)
 
