@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.UIElements;
 using CustomizableUI.Groups;
 using CustomizableUI.Utilities;
+using ILogger = ReduxLib.Logging.ILogger;
 
 namespace CustomizableUI.UI
 {
@@ -13,8 +14,20 @@ namespace CustomizableUI.UI
     /// </summary>
     public class MainGuiController : MonoBehaviour
     {
-        private UIDocument _document;
+        private static readonly ILogger Logger = ReduxLib.ReduxLib.GetLogger($"CustomizableUI|{nameof(MainGuiController)}");
+
+        // The PanelRenderer component of the window GameObject.
+        // KSP2 0.2.9.0 / UitkForKsp2 26w32b moved windows off UIDocument onto Unity 6.5's
+        // PanelRenderer: Window.Create returns a PanelRenderer and no UIDocument is ever added to
+        // the window's GameObject, so GetComponent<UIDocument>() would silently return null here.
+        private PanelRenderer _window;
+
         private VisualElement _root;
+
+        // False until BuildWindow has resolved _root and re-run every element lookup and callback
+        // registration against it. Gates Update(), which otherwise dereferences the cached elements
+        // every frame -- against either null (root never resolved) or released elements (mid-rebuild).
+        private bool _isWired;
 
         private Label _groupLabel;
         private Button _prevGroupButton;
@@ -63,14 +76,70 @@ namespace CustomizableUI.UI
         private const string PendingChangesClass = "pending-changes";
         private string _saveButtonBaseText;
 
+        // Tracked separately from the button's own class/text so a panel rebuild -- which hands us a
+        // fresh Save button carrying neither -- can put the indicator back rather than silently
+        // telling the player their unsaved layout is saved.
+        private bool _hasPendingChanges;
+
         private VisualElement _overlay;
 
         private GroupRegistry Registry => GroupRegistry.Instance;
 
         public void OnEnable()
         {
-            _document = GetComponent<UIDocument>();
-            _root = _document.rootVisualElement;
+            _window = GetComponent<PanelRenderer>();
+
+            // Re-wire whenever UI Toolkit rebuilds the panel's visual tree.
+            // PanelRenderer.InitRootVisualElement clears the old tree with
+            // VisualElementClearOptions.RecursiveReleaseResources and clones a fresh one, so every
+            // element cached below (_root, _overlay, all the buttons/sliders/fields) is left pointing
+            // at RELEASED elements. Those don't fail as clean NREs -- touching a released element's
+            // style/computedStyle reads freed layout memory and throws from inside UnmanagedDataStore,
+            // which for this controller would be once per frame out of Update(). (Orbital Survey hit
+            // exactly this after the Unity 6.5 update.)
+            // We never deactivate the window GameObject ourselves, but a rebuild isn't ours to rule
+            // out, so reattach rather than assume. Unregistered in OnDisable so a re-enable doesn't
+            // stack callbacks.
+            if (_window != null)
+            {
+                _window.UnregisterUIReloadCallback(OnPanelUiReloaded);
+                _window.RegisterUIReloadCallback(OnPanelUiReloaded);
+            }
+
+            BuildWindow();
+        }
+
+        // Fired by PanelRenderer after it rebuilds the visual tree. The rebuilt root is a different
+        // element, so re-resolve and re-run the whole wiring -- it's already written to be re-runnable
+        // (OnEnable itself re-runs on every re-enable), and the fresh elements carry no callbacks from
+        // the previous tree, so this re-registers rather than double-registers.
+        private void OnPanelUiReloaded(PanelRenderer renderer, VisualElement rootElement)
+        {
+            Logger.LogDebug("Panel UI reloaded -- re-resolving the window root and re-wiring the window.");
+            BuildWindow();
+        }
+
+        private void BuildWindow()
+        {
+            _isWired = false;
+
+            // The panel root, not the window root: the yellow selection overlay is positioned
+            // absolutely in UitkForKsp2's full 1920x1080 reference space (see UpdateOverlay), so it has
+            // to hang off the element that covers the whole panel. Q<> lookups still reach every
+            // control from here, since the window subtree lives under it.
+            // GetPanelRoot() is UitkForKsp2's replacement for UIDocument.rootVisualElement --
+            // PanelRenderer.rootVisualElement is internal.
+            _root = _window != null ? _window.GetPanelRoot() : null;
+            if (_root == null)
+            {
+                // Bail out loudly rather than NREing partway through the lookups below, each of which
+                // dereferences _root -- a null here would otherwise produce a wall of unrelated errors.
+                Logger.LogError(
+                    _window == null
+                        ? "No PanelRenderer on the window GameObject -- UitkForKsp2's Window.Create contract changed again; the window cannot be built."
+                        : "PanelRenderer.GetPanelRoot() returned null -- the window UXML did not resolve; the window cannot be built.");
+                return;
+            }
 
             _groupLabel = _root.Q<Label>("group-label");
             _prevGroupButton = _root.Q<Button>("prev-group");
@@ -115,6 +184,17 @@ namespace CustomizableUI.UI
 
             BuildOverlay();
             RegisterCallbacks();
+
+            // Only now is it safe for Update() to touch the cached elements.
+            _isWired = true;
+
+            // The freshly cloned Save button doesn't know about edits made before the rebuild.
+            ApplyPendingChangesIndicator();
+
+            // Same for the notification label: the new one has no "notification--show" class, so drop
+            // the cached "it's currently shown" flag and let Update() re-apply it if the message
+            // hasn't timed out yet.
+            _messageBeingShown = false;
 
             RefreshForSelection();
         }
@@ -269,14 +349,36 @@ namespace CustomizableUI.UI
 
         private void MarkPendingChanges()
         {
-            _saveButton.AddToClassList(PendingChangesClass);
-            _saveButton.text = $"{_saveButtonBaseText} *";
+            _hasPendingChanges = true;
+            ApplyPendingChangesIndicator();
         }
 
         private void ClearPendingChanges()
         {
-            _saveButton.RemoveFromClassList(PendingChangesClass);
-            _saveButton.text = _saveButtonBaseText;
+            _hasPendingChanges = false;
+            ApplyPendingChangesIndicator();
+        }
+
+        /// <summary>
+        /// Pushes <see cref="_hasPendingChanges"/> onto the Save button. Split out from
+        /// Mark/ClearPendingChanges so a post-rebuild re-wire can restore the indicator on the new
+        /// button without pretending a fresh edit (or a fresh save) just happened.
+        /// </summary>
+        private void ApplyPendingChangesIndicator()
+        {
+            if (_saveButton == null)
+                return;
+
+            if (_hasPendingChanges)
+            {
+                _saveButton.AddToClassList(PendingChangesClass);
+                _saveButton.text = $"{_saveButtonBaseText} *";
+            }
+            else
+            {
+                _saveButton.RemoveFromClassList(PendingChangesClass);
+                _saveButton.text = _saveButtonBaseText;
+            }
         }
 
         // ---- Smart jump (ported from the legacy IMGUI D-pad buttons) ----
@@ -407,6 +509,11 @@ namespace CustomizableUI.UI
 
         public void Update()
         {
+            // Everything past here dereferences the cached UXML elements, so it must not run against
+            // a window that failed to build or is between a panel rebuild and its re-wire.
+            if (!_isWired)
+                return;
+
             if (Registry.IsInitialized && Registry.Groups.Count > 0 && Registry.SelectedGroup != null)
             {
                 var selected = Registry.SelectedGroup;
@@ -476,6 +583,16 @@ namespace CustomizableUI.UI
         public void OnDisable()
         {
             _overlay?.RemoveFromHierarchy();
+
+            // The PanelRenderer outlives this component, so a reload callback left registered would
+            // re-run the wiring against a disabled controller (and stack a second registration on the
+            // next enable).
+            if (_window != null)
+                _window.UnregisterUIReloadCallback(OnPanelUiReloaded);
+
+            // The cached elements belong to a tree we're no longer tracking; force a rebuild on
+            // re-enable, and keep Update() off them until then.
+            _isWired = false;
         }
     }
 }
