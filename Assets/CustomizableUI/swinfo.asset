@@ -16,9 +16,9 @@ MonoBehaviour:
   name: Customizable UI
   author: Falki
   description: Move and scale flight UI elements however you want.
-  version: 1.0.0
+  version: 1.0.1
   versionCheck: https://raw.githubusercontent.com/Falki-git/I-Wish-They-Made-UI-Customizable/refs/heads/redux/master/Assets/CustomizableUI/swinfo.json
-  minKsp2Version: 0.2.8.3
+  minKsp2Version: 0.2.9.0
   maxKsp2Version: '*'
   source: https://github.com/Falki-git/I-Wish-They-Made-UI-Customizable/tree/redux/master
   allGroup: {fileID: 11400000, guid: 816e92f6f3efb624c9d3b5f01ae7fccc, type: 2}
@@ -27,6 +27,7 @@ MonoBehaviour:
   celestialBodiesGroup: {fileID: 11400000, guid: d94dab0c3464a4749a1854f32d2f611f, type: 2}
   scienceExperimentGroup: {fileID: 11400000, guid: cb23738a1639cf74997de1fc225ddc1a, type: 2}
   techNodeDataGroup: {fileID: 11400000, guid: 57edcd14d40749a49b490281efd680b0, type: 2}
+  resourcesGroup: {fileID: 0}
   addressablesProfileId: 6f9bd448f8a4e234fb23992c0179a1ee
   dependencies:
   - id: SpaceWarp2
