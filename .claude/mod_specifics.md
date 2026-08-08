@@ -75,6 +75,24 @@ the 6.5 update. `MainGuiController` therefore:
 - re-applies state the fresh UXML clone doesn't carry — the pending-changes marker on Save
   (`_hasPendingChanges`) and the notification label's shown/hidden flag.
 
+**The reload callback also fires for the *first* build, against the tree you already wired.**
+This is the trap that cost a release: `Window.Create` → `InitRootVisualElement` only sets
+`m_UIReloadCallbackPending`; the callback is invoked a frame later from
+`PreUpdatePanelRenderers` → `ReactToHierarchyChanges` → `AddRootVisualElementToTree`. By then
+`MainGuiController.OnEnable` has already resolved and wired that very same tree — and
+`InitRootVisualElement` only clones a fresh one when the *visual tree asset* changed, so the
+re-wire usually hits the **identical element instances**. So a re-wire must never assume it's
+looking at fresh elements. Every `clicked +=` / `RegisterValueChangedCallback` landed twice,
+and one click ran its handler twice: **"next group" advanced two groups**, so every second
+group in `GroupRegistry.Groups` was unreachable and looked like it didn't exist; the jump
+buttons jumped two stops; Save wrote the file twice. Fixed by recording an undo action for
+every registration (`_callbackTeardown`, via the `OnClick`/`OnValueChanged` helpers) and
+running them at the top of `BuildWindow()`. Same reasoning for the hand-built overlay element,
+which `BuildOverlay()` now detaches before creating a replacement, and for
+`_saveButtonBaseText`, captured once so a re-wire can't bake the pending-changes suffix into
+the base text. `RepeatButton.SetAction` is the one exception — it *replaces* its manipulator,
+so it's already idempotent.
+
 Anything that subscribes a window-owned handler to an object that **outlives the window** must
 unsubscribe on teardown, for the same reason. (`GroupRegistry`/`SaveLoadUtility` expose no
 events today, so there's currently nothing to unsubscribe.)

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using UitkForKsp2.API;
 using UnityEngine;
@@ -83,6 +84,16 @@ namespace CustomizableUI.UI
 
         private VisualElement _overlay;
 
+        // One "undo" action per callback RegisterCallbacks attached, run before it attaches them
+        // again. BuildWindow is re-entrant (see OnPanelUiReloaded) and the tree it re-wires is
+        // usually the SAME one -- PanelRenderer only clones a fresh tree when the visual tree asset
+        // itself changed, and the reload callback fires even for the very first build, one frame
+        // after Window.Create already handed us a fully built tree. Without this, every
+        // `clicked +=` / RegisterValueChangedCallback landed on the panel twice, so one click ran
+        // its handler twice: "next group" skipped every second group (they looked like they didn't
+        // exist), the jump buttons jumped two stops, and Save wrote the file twice.
+        private readonly List<Action> _callbackTeardown = new();
+
         private GroupRegistry Registry => GroupRegistry.Instance;
 
         public void OnEnable()
@@ -109,10 +120,12 @@ namespace CustomizableUI.UI
             BuildWindow();
         }
 
-        // Fired by PanelRenderer after it rebuilds the visual tree. The rebuilt root is a different
-        // element, so re-resolve and re-run the whole wiring -- it's already written to be re-runnable
-        // (OnEnable itself re-runs on every re-enable), and the fresh elements carry no callbacks from
-        // the previous tree, so this re-registers rather than double-registers.
+        // Fired by PanelRenderer once its root element is attached to a panel, so re-resolve and
+        // re-run the whole wiring. Note this fires for the FIRST build too, not just later rebuilds:
+        // Window.Create's InitRootVisualElement only flags the callback pending, and it's invoked a
+        // frame later from PreUpdatePanelRenderers -- by which point OnEnable has already wired that
+        // very same tree. So this must be safe to run against elements that are still carrying our
+        // previous registrations, which is what _callbackTeardown is for.
         private void OnPanelUiReloaded(PanelRenderer renderer, VisualElement rootElement)
         {
             Logger.LogDebug("Panel UI reloaded -- re-resolving the window root and re-wiring the window.");
@@ -122,6 +135,10 @@ namespace CustomizableUI.UI
         private void BuildWindow()
         {
             _isWired = false;
+
+            // Drop the previous wiring first -- on a same-tree re-run these are the exact elements
+            // we're about to wire again, and on a real rebuild they're the released ones.
+            TeardownCallbacks();
 
             // The panel root, not the window root: the yellow selection overlay is positioned
             // absolutely in UitkForKsp2's full 1920x1080 reference space (see UpdateOverlay), so it has
@@ -177,7 +194,10 @@ namespace CustomizableUI.UI
             _resetButton = _root.Q<Button>("reset-button");
             _fubarButton = _root.Q<Button>("fubar-button");
             _saveButton = _root.Q<Button>("save-button");
-            _saveButtonBaseText = _saveButton.text;
+            // Captured once, not per build: on a same-tree re-run the button may already be carrying
+            // the pending-changes suffix, and re-reading it there would bake "SAVE *" in as the base.
+            // A real rebuild re-clones the button straight from the UXML, so the text is the same anyway.
+            _saveButtonBaseText ??= _saveButton.text;
             _loadButton = _root.Q<Button>("load-button");
 
             _messageLabel = _root.Q<Label>("notification-label");
@@ -201,19 +221,65 @@ namespace CustomizableUI.UI
 
         private void BuildOverlay()
         {
+            // The overlay isn't part of the UXML -- we add it ourselves, so a re-wire against the
+            // same tree would otherwise leave the previous one parented and visible, frozen at
+            // whatever bounds Update last gave it.
+            _overlay?.RemoveFromHierarchy();
+
             _overlay = new VisualElement { pickingMode = PickingMode.Ignore };
             _overlay.AddToClassList("overlay");
             _overlay.style.position = Position.Absolute;
             _root.Add(_overlay);
         }
 
+        /// <summary>
+        /// Detaches every callback the last <see cref="RegisterCallbacks"/> attached. Guarded per
+        /// action: a real panel rebuild hands the released elements back, and one that refuses to
+        /// be unhooked shouldn't stop the rest from being cleaned up.
+        /// </summary>
+        private void TeardownCallbacks()
+        {
+            foreach (var undo in _callbackTeardown)
+            {
+                try
+                {
+                    undo();
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogWarning($"Failed to detach a callback from the previous window wiring.\n{ex}");
+                }
+            }
+
+            _callbackTeardown.Clear();
+        }
+
+        /// <summary>Attaches a click handler and records how to detach it again.</summary>
+        private void OnClick(Button button, Action handler)
+        {
+            button.clicked += handler;
+            _callbackTeardown.Add(() => button.clicked -= handler);
+        }
+
+        /// <summary>Attaches a value-changed handler and records how to detach it again.</summary>
+        private void OnValueChanged<T>(INotifyValueChanged<T> field, EventCallback<ChangeEvent<T>> handler)
+        {
+            field.RegisterValueChangedCallback(handler);
+            _callbackTeardown.Add(() => field.UnregisterValueChangedCallback(handler));
+        }
+
+        /// <summary>
+        /// Every registration here goes through OnClick/OnValueChanged so BuildWindow can undo it --
+        /// see <see cref="_callbackTeardown"/>. The RepeatButtons are the exception: SetAction
+        /// replaces its manipulator rather than stacking, so re-running it is already idempotent.
+        /// </summary>
         private void RegisterCallbacks()
         {
-            _prevGroupButton.clicked += () => { BlurPositionFields(); Registry.SelectPrevious(); RefreshForSelection(); };
-            _nextGroupButton.clicked += () => { BlurPositionFields(); Registry.SelectNext(); RefreshForSelection(); };
-            _closeButton.clicked += () => SceneController.Instance.ToggleUI(false);
+            OnClick(_prevGroupButton, () => { BlurPositionFields(); Registry.SelectPrevious(); RefreshForSelection(); });
+            OnClick(_nextGroupButton, () => { BlurPositionFields(); Registry.SelectNext(); RefreshForSelection(); });
+            OnClick(_closeButton, () => SceneController.Instance.ToggleUI(false));
 
-            _followNavballToggle.RegisterValueChangedCallback(evt =>
+            OnValueChanged(_followNavballToggle, evt =>
             {
                 if (Registry.SelectedGroup == null)
                     return;
@@ -222,7 +288,7 @@ namespace CustomizableUI.UI
                 MarkPendingChanges();
             });
 
-            _scaleWithNavballToggle.RegisterValueChangedCallback(evt =>
+            OnValueChanged(_scaleWithNavballToggle, evt =>
             {
                 if (Registry.SelectedGroup == null)
                     return;
@@ -231,7 +297,7 @@ namespace CustomizableUI.UI
                 MarkPendingChanges();
             });
 
-            _showToggle.RegisterValueChangedCallback(evt =>
+            OnValueChanged(_showToggle, evt =>
             {
                 if (Registry.SelectedGroup == null)
                     return;
@@ -240,13 +306,13 @@ namespace CustomizableUI.UI
                 MarkPendingChanges();
             });
 
-            _xField.RegisterValueChangedCallback(evt => MutateSelected(g => g.Position = WithX(g.Position, ParseOrKeep(evt.newValue, g.Position.x))));
-            _yField.RegisterValueChangedCallback(evt => MutateSelected(g => g.Position = WithY(g.Position, ParseOrKeep(evt.newValue, g.Position.y))));
+            OnValueChanged(_xField, evt => MutateSelected(g => g.Position = WithX(g.Position, ParseOrKeep(evt.newValue, g.Position.x))));
+            OnValueChanged(_yField, evt => MutateSelected(g => g.Position = WithY(g.Position, ParseOrKeep(evt.newValue, g.Position.y))));
 
-            _xSlider.RegisterValueChangedCallback(evt => MutateSelected(g => g.Position = WithX(g.Position, evt.newValue)));
-            _ySlider.RegisterValueChangedCallback(evt => MutateSelected(g => g.Position = WithY(g.Position, evt.newValue)));
+            OnValueChanged(_xSlider, evt => MutateSelected(g => g.Position = WithX(g.Position, evt.newValue)));
+            OnValueChanged(_ySlider, evt => MutateSelected(g => g.Position = WithY(g.Position, evt.newValue)));
 
-            _scaleSlider.RegisterValueChangedCallback(evt =>
+            OnValueChanged(_scaleSlider, evt =>
             {
                 var selected = Registry.SelectedGroup;
                 if (selected == null)
@@ -263,17 +329,17 @@ namespace CustomizableUI.UI
                 RefreshForSelection();
             });
 
-            _jumpUpButton.clicked += () => MutateSelected(JumpUp);
-            _jumpDownButton.clicked += () => MutateSelected(JumpDown);
-            _jumpLeftButton.clicked += () => MutateSelected(JumpLeft);
-            _jumpRightButton.clicked += () => MutateSelected(JumpRight);
+            OnClick(_jumpUpButton, () => MutateSelected(JumpUp));
+            OnClick(_jumpDownButton, () => MutateSelected(JumpDown));
+            OnClick(_jumpLeftButton, () => MutateSelected(JumpLeft));
+            OnClick(_jumpRightButton, () => MutateSelected(JumpRight));
 
             _nudgeUpButton.SetAction(() => MutateSelected(g => g.NudgeUp()), NudgeRepeatDelayMs, NudgeRepeatIntervalMs);
             _nudgeDownButton.SetAction(() => MutateSelected(g => g.NudgeDown()), NudgeRepeatDelayMs, NudgeRepeatIntervalMs);
             _nudgeLeftButton.SetAction(() => MutateSelected(g => g.NudgeLeft()), NudgeRepeatDelayMs, NudgeRepeatIntervalMs);
             _nudgeRightButton.SetAction(() => MutateSelected(g => g.NudgeRight()), NudgeRepeatDelayMs, NudgeRepeatIntervalMs);
 
-            _resetButton.clicked += () =>
+            OnClick(_resetButton, () =>
             {
                 var selected = Registry.SelectedGroup;
                 if (selected == null)
@@ -291,24 +357,24 @@ namespace CustomizableUI.UI
 
                 ShowMessage($"Group {selected.DisplayName} reset.");
                 RefreshForSelection();
-            };
+            });
 
-            _fubarButton.clicked += () =>
+            OnClick(_fubarButton, () =>
             {
                 Registry.ResetAllToDefault();
                 MarkPendingChanges();
                 ShowMessage("Layout reset to initial state.");
                 RefreshForSelection();
-            };
+            });
 
-            _saveButton.clicked += () =>
+            OnClick(_saveButton, () =>
             {
                 SaveLoadUtility.SaveData();
                 ClearPendingChanges();
                 ShowMessage("Layout saved.");
-            };
+            });
 
-            _loadButton.clicked += () =>
+            OnClick(_loadButton, () =>
             {
                 SaveLoadUtility.LoadData();
                 // The just-loaded layout is now exactly what's on disk, so there's nothing left
@@ -316,7 +382,7 @@ namespace CustomizableUI.UI
                 ClearPendingChanges();
                 ShowMessage("Layout loaded.");
                 RefreshForSelection();
-            };
+            });
         }
 
         /// <summary>
@@ -583,6 +649,10 @@ namespace CustomizableUI.UI
         public void OnDisable()
         {
             _overlay?.RemoveFromHierarchy();
+
+            // The window's elements can outlive this component being disabled, so leave nothing of
+            // ours attached to them -- OnEnable wires them again from scratch.
+            TeardownCallbacks();
 
             // The PanelRenderer outlives this component, so a reload callback left registered would
             // re-run the wiring against a disabled controller (and stack a second registration on the
